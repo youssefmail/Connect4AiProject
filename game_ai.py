@@ -12,10 +12,11 @@ class AiPlayer:
         self.rows = 6
         self.cols = 7
     
+    def get_player_action(self, state):
+        best_action = self.minimax(self.depth, True, state)[1]
+        return best_action
 
     def minimax(self, depth, is_maximizing, state):
-        
-
         if state.isTerminated() or depth == 0:
             score = self._evaluate(state)
             return score, None
@@ -24,25 +25,22 @@ class AiPlayer:
         if not actions:
             score = self._evaluate(state)
             return score, None
-        
+
         best_action = None
 
         if is_maximizing:
-            best_score = -1000
+            best_score = float('-inf')
             for action in actions:
-                
-                new_state = state.take_action_in_different_state_object(action, 3 - self.player)
-                score, _ = self.minimax(depth - 1, False , new_state)
+                new_state = state.take_action_in_different_state_object(action, self.player)  # AI's move
+                score, _ = self.minimax(depth - 1, False, new_state)
                 if score > best_score:
                     best_score = score
                     best_action = action
-
-        elif not is_maximizing:
-            best_score = 1000
+        else:
+            best_score = float('inf')
             for action in actions:
-                
-                new_state = state.take_action_in_different_state_object(action, self.player)
-                score, _ = self.minimax(depth - 1, True ,new_state)
+                new_state = state.take_action_in_different_state_object(action, 3 - self.player)  # Opponent's move
+                score, _ = self.minimax(depth - 1, True, new_state)
                 if score < best_score:
                     best_score = score
                     best_action = action
