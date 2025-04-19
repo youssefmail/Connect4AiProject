@@ -12,37 +12,205 @@ class AiPlayer:
         self.rows = 6
         self.cols = 7
     
+    # state = None for testing
+    def _evaluate(self, state= None):
+        
+        # board = state._table
+        board = [
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0],
+        [0,0,2,0,1,0,0],
+        [0,1,1,2,1,0,0],
+        [2,0,1,1,1,0,0],
+        [1,1,2,2,2,0,0],
+    ]
 
-    def _eval(self, state):
-        board = state._table
         
         try:
             # check winning 
             if state.get_winner_number() == 0:
                 return 0
             elif state.get_winner_number() == 1:
-                return -100
+                return -150
             elif state.get_winner_number() == 2:
-                return 100
+                return 150
         except Exception as e:
             pass
+        
+        diagonal_score = self._evaluate_2_and_3_in_row_diagonally(board)
+        horizontal_score = self._evaluate_2_and_3_in_row_horizontally(board)
+        vertical_score = self._evaluate_2_and_3_in_row_vertically(board)
+        center_score = self._center_column_control(board)
 
-        rating = 0
+        evaluation = diagonal_score + horizontal_score + vertical_score + center_score
+
+        return "the score = " + str(evaluation)
+   
+    def _evaluate_2_and_3_in_row_diagonally(self, board):
         
 
+        result = [0,0]
+
+        # Check diagonally (top-left to bottom-right)
+        for d in range(-(self.cols-1), self.rows):
+            count = 0
+            prev_player = 0
+            diagonal_positions = []  # Store [row, col] for each position in diagonal
+            
+            # Find all cells that belong to this diagonal
+            for row in range(self.rows):
+                col = row - d  
+                if 0 <= col < self.cols:
+                    diagonal_positions.append([row, col])
+                    player = board[row][col]
+                    
+                    if player == 0:
+                        count = 0
+                        prev_player = 0
+                    elif player == prev_player:
+                        count += 1
+                    else:
+                        count = 1
+                        prev_player = player 
+
+                     # When we find 2 in a row
+                    if count == 2 and prev_player != 0:
+                        # Check open ends
+                        has_left_open = False
+                        has_right_open = False
+                        
+                        # Get positions of start and end of the sequence
+                        start_row, start_col = diagonal_positions[-2]
+                        end_row, end_col = diagonal_positions[-1]
+                        
+                        # Check left open end (one position before start)
+                        if start_row - 1 >= 0 and start_col - 1 >= 0:
+                            if board[start_row - 1][start_col - 1] == 0:
+                                has_left_open = True
+                        
+                        # Check right open end (one position after end)
+                        if end_row + 1 < self.rows and end_col + 1 < self.cols:
+                            if board[end_row + 1][end_col + 1] == 0:
+                                has_right_open = True
+                        
+                        # Score based on open ends
+                        if has_left_open and has_right_open:
+                            result[prev_player - 1] += 5  # Both ends open
+                        elif has_left_open or has_right_open:
+                            result[prev_player - 1] += 3  # One end open
+
+                    # When we find 3 in a row
+                    elif count == 3 and prev_player != 0:
+                        # Check open ends
+                        has_left_open = False
+                        has_right_open = False
+                        
+                        # Get positions of start and end of the sequence
+                        start_row, start_col = diagonal_positions[-3]
+                        end_row, end_col = diagonal_positions[-1]
+                        
+                        # Check left open end (one position before start)
+                        if start_row - 1 >= 0 and start_col - 1 >= 0:
+                            if board[start_row - 1][start_col - 1] == 0:
+                                has_left_open = True
+                        
+                        # Check right open end (one position after end)
+                        if end_row + 1 < self.rows and end_col + 1 < self.cols:
+                            if board[end_row + 1][end_col + 1] == 0:
+                                has_right_open = True
+                        
+                        # Score based on open ends
+                        if has_left_open and has_right_open:
+                            result[prev_player - 1] += 15  # Both ends open
+                        elif has_left_open or has_right_open:
+                            result[prev_player - 1] += 12  # One end open
+                        else:
+                            result[prev_player - 1] += 8   # No open ends
 
         
-    
-    def _evaluate_3_in_row(self, board):
-        #player_1_count = 0
-        #player_2_count = 0
+        # check diagonaly (top-right to bottom-left)
+        for d in range(self.rows + self.cols - 1): 
+            count = 0
+            prev_player = 0 
+            diagonal_positions = []
+            
+            for row in range(self.rows):
+                col = d - row 
+                if 0 <= col < self.cols:
+                    diagonal_positions.append([row, col])
+                    player = board[row][col]
+
+                    if player == 0:
+                        count = 0
+                        prev_player = 0
+                    elif player == prev_player:
+                        count += 1
+                    else:
+                        count = 1
+                        prev_player = player 
+
+                     # When we find 2 in a row
+                if count == 2 and prev_player != 0:
+                    # Check open ends
+                    has_left_open = False
+                    has_right_open = False
+                    
+                    # Get positions of start and end of the sequence
+                    start_row, start_col = diagonal_positions[-2]
+                    end_row, end_col = diagonal_positions[-1]
+                    
+                    # Check left open end (one position before start)
+                    if start_row - 1 >= 0 and start_col + 1 < self.cols:
+                        if board[start_row - 1][start_col + 1] == 0:
+                            has_left_open = True
+                    
+                    # Check right open end (one position after end)
+                    if end_row + 1 < self.rows and end_col - 1 >= 0:
+                        if board[end_row + 1][end_col - 1] == 0:
+                            has_right_open = True
+                    
+                    # Score based on open ends
+                    if has_left_open and has_right_open:
+                        result[prev_player - 1] += 5  # Both ends open
+                    elif has_left_open or has_right_open:
+                        result[prev_player - 1] += 3  # One end open
+
+                    
+                    elif count == 3 and prev_player != 0:
+                        
+                        has_left_open = False
+                        has_right_open = False
+                        
+                        start_row, start_col = diagonal_positions[-3]
+                        end_row, end_col = diagonal_positions[-1]
+                        
+                        if start_row - 1 >= 0 and start_col + 1 < self.cols:
+                            if board[start_row - 1][start_col + 1] == 0:
+                                has_left_open = True
+                        
+                        if end_row + 1 < self.rows and end_col - 1 >= 0:
+                            if board[end_row + 1][end_col - 1] == 0:
+                                has_right_open = True
+                        
+                        if has_left_open and has_right_open:
+                            result[prev_player - 1] += 15 
+                        elif has_left_open or has_right_open:
+                            result[prev_player - 1] += 12 
+                        else:
+                            result[prev_player - 1] += 8  
+
+        return result[0] - result[1]
+
+    def _evaluate_2_and_3_in_row_horizontally(self, board):
+
         prev_player = 0
         count = 0
         result = [0,0]
 
-        # Check horizontaly
         for row in range(self.rows):
+            positions = []
             for col in range(self.cols):
+                positions.append([row, col])
                 player = board[row][col]
 
                 if player == 0:
@@ -54,22 +222,104 @@ class AiPlayer:
                     count = 1
                     prev_player = player
 
+                 # check 2 in a row
+                if count == 2 and prev_player != 0:
+                    has_left_open = False
+                    has_right_open = False
 
-                if count == 3 and col == self.cols -1:
-                    if board[row][col-3] == 0 :
-                        result[player-1] += 12
-                    else:
-                        result[player-1] += 8 
-                elif count == 3 and col != self.cols -1:
-                    if board[row][col-3] == 0 or board[row][col+1] == 0 :
-                        result[player-1] += 15 
-                    else:
-                        result[player-1] += 10
+                    start_row, start_col = positions[-2]
+                    end_row, end_col = positions[-1]
+
+                    # check for left open
+                    if start_col - 1 >= 0:
+                        if board[start_row][start_col - 1] == 0:
+                            has_left_open = True
+
+                    # check for right open
+                    if end_col + 1 < self.cols:
+                        if board[end_row][end_col + 1] == 0:
+                            has_right_open = True
+
+                    
+                    if has_left_open and has_right_open:
+                        result[prev_player - 1] += 5  
+                    elif has_left_open or has_right_open:
+                        result[prev_player - 1] += 3  
                 
+                # check 3 in a row
+                elif count == 3 and prev_player != 0:
+                    has_left_open = False
+                    has_right_open = False
+
+                    start_row, start_col = positions[-3]
+                    end_row, end_col = positions[-1]
+
+                    if start_col - 1 >= 0:
+                        if board[start_row][start_col - 1] == 0:
+                            has_left_open = True
+
+                    if end_col + 1 < self.cols:
+                        if board[end_row][end_col + 1] == 0:
+                            has_right_open = True
+
+                    if has_left_open and has_right_open:
+                        result[prev_player - 1] += 15  
+                    elif has_left_open or has_right_open:
+                        result[prev_player - 1] += 12 
+                    else:
+                        result[prev_player - 1] += 8                    
+                                             
+            
+        return result[0] - result[1] 
+    
+    def _evaluate_2_and_3_in_row_vertically(self, board):
+        prev_player = 0
         count = 0
-        return result
+        result = [0,0]
 
         # Check vertically
+        for col in range(self.cols):
+            for row in range(self.rows):
+                player = board[row][col]
+
+                if player == 0:
+                        count = 0
+                        prev_player = 0
+                elif player == prev_player:
+                    count += 1
+                elif player != prev_player:
+                    count = 1
+                    prev_player = player    
+                
+                # check 2 in a row
+                if count == 2 and prev_player != 0 and row > 1 and board[row-2][col] == 0:
+                    result[player-1] += 5  # One space above
+                
+                # check 3 in a row
+                elif count == 3 and prev_player != 0:
+                    if row > 2 and board[row-3][col] == 0:
+                        result[player-1] += 15  # One space above
+                    else:
+                        result[player-1] += 8  # No space above
+
+        return result[0] - result[1]
+
+    def _center_column_control(self, board):
+        player_1_count = 0
+        player_2_count = 0
+
+        for row in range(self.rows):
+            if board[row][3] == 1:
+                player_1_count += 1
+            elif board[row][3] == 2:
+                player_2_count += 1
+        
+        if player_1_count > player_2_count: 
+            return 5
+        elif player_1_count == player_2_count:
+            return 0
+        else: 
+            return -5
 
 
     def get_available_columns(self, board):
@@ -79,25 +329,14 @@ class AiPlayer:
                 result.append(col + 1)
 
         return result
-    
+
+
 
 
 # testing
 player = AiPlayer()
 
-board = [
-    [0, 0, 0, 0, 0, 0, 0],  
-    [0, 0, 0, 0, 0, 0, 0],  
-    [0, 0, 0, 0, 0, 0, 0],  
-    [0, 0, 1, 0, 0, 0, 0],  
-    [0, 0, 1, 0, 2, 2, 2],  
-    [0, 2, 1, 1, 1, 2, 2]   
-]
-print(player._evaluate_3_in_row(board))
+print(player._evaluate())
 
-# +15  3 in row middle have zero before or after
-# +10  3 in row middle
-# +12  3 in row edges have zero before or after
-# +8  3 in row edges
-# +6  2 in row middle
-# +3  2 in row edges
+
+#player 1 maximize and player 2 minimize
