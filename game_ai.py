@@ -12,21 +12,50 @@ class AiPlayer:
         self.rows = 6
         self.cols = 7
     
+
+    def minimax(self, depth, is_maximizing, state):
+        
+
+        if state.isTerminated() or depth == 0:
+            score = self._evaluate(state)
+            return score, None
+
+        actions = state.get_available_actions()
+        if not actions:
+            score = self._evaluate(state)
+            return score, None
+        
+        best_action = None
+
+        if is_maximizing:
+            best_score = -1000
+            for action in actions:
+                
+                new_state = state.take_action_in_different_state_object(action, 3 - self.player)
+                score, _ = self.minimax(depth - 1, False , new_state)
+                if score > best_score:
+                    best_score = score
+                    best_action = action
+
+        elif not is_maximizing:
+            best_score = 1000
+            for action in actions:
+                
+                new_state = state.take_action_in_different_state_object(action, self.player)
+                score, _ = self.minimax(depth - 1, True ,new_state)
+                if score < best_score:
+                    best_score = score
+                    best_action = action
+
+        return best_score, best_action
+        
+
     # state = None for testing
     def _evaluate(self, state= None):
         
-        # board = state._table
-        board = [
-        [0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0],
-        [0,0,2,0,1,0,0],
-        [0,1,1,2,1,0,0],
-        [2,0,1,1,1,0,0],
-        [1,1,2,2,2,0,0],
-    ]
-
+        board = state._table
         
-        try:
+        if state.isTerminated():
             # check winning 
             if state.get_winner_number() == 0:
                 return 0
@@ -34,8 +63,6 @@ class AiPlayer:
                 return -150
             elif state.get_winner_number() == 2:
                 return 150
-        except Exception as e:
-            pass
         
         diagonal_score = self._evaluate_2_and_3_in_row_diagonally(board)
         horizontal_score = self._evaluate_2_and_3_in_row_horizontally(board)
@@ -44,7 +71,7 @@ class AiPlayer:
 
         evaluation = diagonal_score + horizontal_score + vertical_score + center_score
 
-        return "the score = " + str(evaluation)
+        return evaluation
    
     def _evaluate_2_and_3_in_row_diagonally(self, board):
         
@@ -320,15 +347,6 @@ class AiPlayer:
             return 0
         else: 
             return -5
-
-
-    def get_available_columns(self, board):
-        result = []
-        for col in range(len(board[0])):
-            if col == 0:
-                result.append(col + 1)
-
-        return result
 
 
 
