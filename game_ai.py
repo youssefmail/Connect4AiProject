@@ -14,6 +14,7 @@ class AiPlayer:
         self.rows = 6
         self.cols = 7
     
+
     def get_default_name(self):
         return "Ai Player"
 
@@ -22,6 +23,7 @@ class AiPlayer:
             best_action = self.minimax(self.depth, False, state)[1]
         else:
             best_action = self.minimax(self.depth, True, state)[1]
+
         return best_action
 
     def minimax(self, depth, is_maximizing, state):
@@ -37,7 +39,8 @@ class AiPlayer:
         best_action = None
 
         if is_maximizing:
-            best_score = -10000
+
+            best_score = float('-inf')
             for action in actions:
                 new_state = state.take_action_in_different_state_object(action, self.player)  # AI's move
                 score, _ = self.minimax(depth - 1, False, new_state)
@@ -45,7 +48,8 @@ class AiPlayer:
                     best_score = score
                     best_action = action
         else:
-            best_score = 100000
+
+            best_score = float('inf')
             for action in actions:
                 new_state = state.take_action_in_different_state_object(action, 3 - self.player)  # Opponent's move
                 score, _ = self.minimax(depth - 1, True, new_state)
@@ -61,7 +65,7 @@ class AiPlayer:
         
         board = state._table
         
-        try:
+        if state.isTerminated():
             # check winning 
             if state.get_winner_number() == 0:
                 return 0
@@ -69,8 +73,6 @@ class AiPlayer:
                 return -150
             elif state.get_winner_number() == 2:
                 return 150
-        except Exception as e:
-            pass
         
         diagonal_score = self._evaluate_2_and_3_in_row_diagonally(board)
         horizontal_score = self._evaluate_2_and_3_in_row_horizontally(board)
@@ -349,7 +351,10 @@ class AiPlayer:
             elif board[row][center_col] == 2:
                 score -= 2
         
+
         return score
+
+
 
 # notes
 # player 1 is maximizing
