@@ -1,11 +1,13 @@
 from game_logic import *
+from abc import ABC, abstractmethod
 
 class AiPlayer:
     
-    def __init__ (self, player = 2, level = 4):
+    def __init__ (self, player = 2, level = 1, name = "Aiplayer"):
         if player not in (1, 2):
             raise ValueError("Player must be either 1 or 2")
 
+        self.name = name
         self.player = player
         self.level = level
         self.depth = level + 1
@@ -16,7 +18,10 @@ class AiPlayer:
         return "Ai Player"
 
     def get_player_action(self, state):
-        best_action = self.minimax(self.depth, True, state)[1]
+        if self.player == 2:
+            best_action = self.minimax(self.depth, False, state)[1]
+        else:
+            best_action = self.minimax(self.depth, True, state)[1]
         return best_action
 
     def minimax(self, depth, is_maximizing, state):
@@ -232,11 +237,13 @@ class AiPlayer:
         return result[0] - result[1]
 
     def _evaluate_2_and_3_in_row_horizontally(self, board):
-        result = [0, 0]
+
+        
+        result = [0,0]
 
         for row in range(self.rows):
-            prev_player = 0  # Reset for each row
-            count = 0        # Reset for each row
+            prev_player = 0
+            count = 0
             positions = []
             for col in range(self.cols):
                 positions.append([row, col])
@@ -300,12 +307,13 @@ class AiPlayer:
         return result[0] - result[1] 
     
     def _evaluate_2_and_3_in_row_vertically(self, board):
-        prev_player = 0
-        count = 0
+        
         result = [0,0]
 
         # Check vertically
         for col in range(self.cols):
+            prev_player = 0
+            count = 0
             for row in range(self.rows):
                 player = board[row][col]
 
@@ -332,24 +340,23 @@ class AiPlayer:
         return result[0] - result[1]
 
     def _center_column_control(self, board):
-        player_1_count = 0
-        player_2_count = 0
-
+        center_col = self.cols // 2
+        score = 0
+    
         for row in range(self.rows):
-            if board[row][3] == 1:
-                player_1_count += 1
-            elif board[row][3] == 2:
-                player_2_count += 1
+            if board[row][center_col] == 1:
+                score += 2
+            elif board[row][center_col] == 2:
+                score -= 2
         
-        if player_1_count > player_2_count: 
-            return 5
-        elif player_1_count == player_2_count:
-            return 0
-        else: 
-            return -5
+        return score
 
+# notes
+# player 1 is maximizing
+# player 2 is minimizing
 
-
-
-
-#player 1 maximize and player 2 minimize
+# TODO
+# Distance from Bottom
+# Blocking Opponent's Threats:
+# Trapped Spaces
+# Fork Opportunities:
