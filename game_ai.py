@@ -2,7 +2,7 @@ from game_logic import *
 
 class AiPlayer:
     
-    def __init__ (self, player = 2, level = 2):
+    def __init__ (self, player = 2, level = 4):
         if player not in (1, 2):
             raise ValueError("Player must be either 1 or 2")
 
@@ -32,7 +32,7 @@ class AiPlayer:
         best_action = None
 
         if is_maximizing:
-            best_score = float('-inf')
+            best_score = -10000
             for action in actions:
                 new_state = state.take_action_in_different_state_object(action, self.player)  # AI's move
                 score, _ = self.minimax(depth - 1, False, new_state)
@@ -40,7 +40,7 @@ class AiPlayer:
                     best_score = score
                     best_action = action
         else:
-            best_score = float('inf')
+            best_score = 100000
             for action in actions:
                 new_state = state.take_action_in_different_state_object(action, 3 - self.player)  # Opponent's move
                 score, _ = self.minimax(depth - 1, True, new_state)
@@ -54,16 +54,7 @@ class AiPlayer:
     # state = None for testing
     def _evaluate(self, state= None):
         
-        # board = state._table
-        board = [
-        [0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0],
-        [0,0,2,0,1,0,0],
-        [0,1,1,2,1,0,0],
-        [2,0,1,1,1,0,0],
-        [1,1,2,2,2,0,0],
-    ]
-
+        board = state._table
         
         try:
             # check winning 
@@ -83,7 +74,7 @@ class AiPlayer:
 
         evaluation = diagonal_score + horizontal_score + vertical_score + center_score
 
-        return "the score = " + str(evaluation)
+        return evaluation
    
     def _evaluate_2_and_3_in_row_diagonally(self, board):
         
