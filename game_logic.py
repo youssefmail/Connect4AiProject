@@ -349,19 +349,19 @@ class Player(ABC):
     def get_default_name(self):
         return "Player"
 
-class AiPlayer(Player):
-    def get_player_action(self, copy_of_current_state):
-        pass
+# class AiPlayer(Player):
+#     def get_player_action(self, copy_of_current_state):
+#         pass
 
-    def get_default_name(self):
-        return "Ai Player"
+#     def get_default_name(self):
+#         return "Ai Player"
 
-class RandomPlayer(AiPlayer):
-    def get_player_action(self, copy_of_current_state):
-        return random.choice(copy_of_current_state.get_available_actions())
+# class RandomPlayer(AiPlayer):
+#     def get_player_action(self, copy_of_current_state):
+#         return random.choice(copy_of_current_state.get_available_actions())
 
-    def get_default_name(self):
-        return "Ai Player"
+#     def get_default_name(self):
+#         return "Ai Player"
 
 
 

@@ -1,11 +1,12 @@
 from game_logic import *
+from game_ai import AiPlayer
 
 # # To start game of Two human player
 # g = Game([HumanPlayerByCommandLine("Alex"), HumanPlayerByCommandLine("Ali")])
 # g.start_game()
 
 # To start game of random player vs human player
-g = Game([HumanPlayerByCommandLine("Ali"), RandomPlayer("Random1")])
+g = Game([HumanPlayerByCommandLine("Ali"), AiPlayer()])
 g.start_game()
 
 # # To start game of random player
