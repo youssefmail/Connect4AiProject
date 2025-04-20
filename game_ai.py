@@ -363,5 +363,4 @@ class AiPlayer:
 # TODO
 # Distance from Bottom
 # Blocking Opponent's Threats:
-# Trapped Spaces
 # Fork Opportunities:
