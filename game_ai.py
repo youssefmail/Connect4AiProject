@@ -1,19 +1,29 @@
 from game_logic import *
+from abc import ABC, abstractmethod
 
 class AiPlayer:
     
-    def __init__ (self, player = 2, level = 1):
+    def __init__ (self, player = 2, level = 1, name = "Aiplayer"):
         if player not in (1, 2):
             raise ValueError("Player must be either 1 or 2")
 
+        self.name = name
         self.player = player
         self.level = level
         self.depth = level + 1
         self.rows = 6
         self.cols = 7
     
+
+    def get_default_name(self):
+        return "Ai Player"
+
     def get_player_action(self, state):
-        best_action = self.minimax(self.depth, True, state)[1]
+        if self.player == 2:
+            best_action = self.minimax(self.depth, False, state)[1]
+        else:
+            best_action = self.minimax(self.depth, True, state)[1]
+
         return best_action
 
     def minimax(self, depth, is_maximizing, state):
@@ -29,6 +39,7 @@ class AiPlayer:
         best_action = None
 
         if is_maximizing:
+
             best_score = float('-inf')
             for action in actions:
                 new_state = state.take_action_in_different_state_object(action, self.player)  # AI's move
@@ -37,6 +48,7 @@ class AiPlayer:
                     best_score = score
                     best_action = action
         else:
+
             best_score = float('inf')
             for action in actions:
                 new_state = state.take_action_in_different_state_object(action, 3 - self.player)  # Opponent's move
@@ -228,11 +240,12 @@ class AiPlayer:
 
     def _evaluate_2_and_3_in_row_horizontally(self, board):
 
-        prev_player = 0
-        count = 0
+        
         result = [0,0]
 
         for row in range(self.rows):
+            prev_player = 0
+            count = 0
             positions = []
             for col in range(self.cols):
                 positions.append([row, col])
@@ -243,40 +256,39 @@ class AiPlayer:
                     prev_player = 0
                 elif player == prev_player:
                     count += 1
-                elif player != prev_player:
+                else:  # player != prev_player and player != 0
                     count = 1
                     prev_player = player
 
-                 # check 2 in a row
+                # Check 2 in a row
                 if count == 2 and prev_player != 0:
                     has_left_open = False
                     has_right_open = False
 
-                    start_row, start_col = positions[-2]
+                    start_row, start_col = positions[-2]  # Fixed: Use -2 for two pieces
                     end_row, end_col = positions[-1]
 
-                    # check for left open
+                    # Check for left open
                     if start_col - 1 >= 0:
                         if board[start_row][start_col - 1] == 0:
                             has_left_open = True
 
-                    # check for right open
+                    # Check for right open
                     if end_col + 1 < self.cols:
                         if board[end_row][end_col + 1] == 0:
                             has_right_open = True
 
-                    
                     if has_left_open and has_right_open:
-                        result[prev_player - 1] += 5  
+                        result[prev_player - 1] += 5  # Both ends open
                     elif has_left_open or has_right_open:
-                        result[prev_player - 1] += 3  
-                
-                # check 3 in a row
+                        result[prev_player - 1] += 3  # One end open
+
+                # Check 3 in a row
                 elif count == 3 and prev_player != 0:
                     has_left_open = False
                     has_right_open = False
 
-                    start_row, start_col = positions[-3]
+                    start_row, start_col = positions[-3]  # Correct for three pieces
                     end_row, end_col = positions[-1]
 
                     if start_col - 1 >= 0:
@@ -288,22 +300,22 @@ class AiPlayer:
                             has_right_open = True
 
                     if has_left_open and has_right_open:
-                        result[prev_player - 1] += 15  
+                        result[prev_player - 1] += 15  # Both ends open
                     elif has_left_open or has_right_open:
-                        result[prev_player - 1] += 12 
+                        result[prev_player - 1] += 12  # One end open
                     else:
-                        result[prev_player - 1] += 8                    
-                                             
-            
+                        result[prev_player - 1] += 8   # No open ends
+
         return result[0] - result[1] 
     
     def _evaluate_2_and_3_in_row_vertically(self, board):
-        prev_player = 0
-        count = 0
+        
         result = [0,0]
 
         # Check vertically
         for col in range(self.cols):
+            prev_player = 0
+            count = 0
             for row in range(self.rows):
                 player = board[row][col]
 
@@ -330,29 +342,26 @@ class AiPlayer:
         return result[0] - result[1]
 
     def _center_column_control(self, board):
-        player_1_count = 0
-        player_2_count = 0
-
+        center_col = self.cols // 2
+        score = 0
+    
         for row in range(self.rows):
-            if board[row][3] == 1:
-                player_1_count += 1
-            elif board[row][3] == 2:
-                player_2_count += 1
+            if board[row][center_col] == 1:
+                score += 2
+            elif board[row][center_col] == 2:
+                score -= 2
         
-        if player_1_count > player_2_count: 
-            return 5
-        elif player_1_count == player_2_count:
-            return 0
-        else: 
-            return -5
+
+        return score
 
 
 
+# notes
+# player 1 is maximizing
+# player 2 is minimizing
 
-# testing
-player = AiPlayer()
-
-print(player._evaluate())
-
-
-#player 1 maximize and player 2 minimize
+# TODO
+# Distance from Bottom
+# Blocking Opponent's Threats:
+# Trapped Spaces
+# Fork Opportunities:
