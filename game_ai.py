@@ -1,9 +1,8 @@
 from game_logic import *
-from abc import ABC, abstractmethod
 
 class AiPlayer:
     
-    def __init__ (self, player = 2, level = 1, name = "Aiplayer"):
+    def __init__ (self, player = 2, level = 1, name = "Ai Player"):
         if player not in (1, 2):
             raise ValueError("Player must be either 1 or 2")
 
@@ -60,19 +59,19 @@ class AiPlayer:
         return best_score, best_action
         
 
-    # state = None for testing
-    def _evaluate(self, state= None):
+
+    def _evaluate(self, state):
         
         board = state._table
         
         if state.isTerminated():
             # check winning 
-            if state.get_winner_number() == 0:
-                return 0
-            elif state.get_winner_number() == 1:
-                return -150
+            if state.get_winner_number() == 1:
+                return -200  
             elif state.get_winner_number() == 2:
-                return 150
+                return 200  
+            else:
+                return 0
         
         diagonal_score = self._evaluate_2_and_3_in_row_diagonally(board)
         horizontal_score = self._evaluate_2_and_3_in_row_horizontally(board)
@@ -85,7 +84,6 @@ class AiPlayer:
    
     def _evaluate_2_and_3_in_row_diagonally(self, board):
         
-
         result = [0,0]
 
         # Check diagonally (top-left to bottom-right)
@@ -132,9 +130,9 @@ class AiPlayer:
                         
                         # Score based on open ends
                         if has_left_open and has_right_open:
-                            result[prev_player - 1] += 5  # Both ends open
+                            result[prev_player - 1] += 	10  # Both ends open
                         elif has_left_open or has_right_open:
-                            result[prev_player - 1] += 3  # One end open
+                            result[prev_player - 1] += 5  # One end open
 
                     # When we find 3 in a row
                     elif count == 3 and prev_player != 0:
@@ -156,13 +154,25 @@ class AiPlayer:
                             if board[end_row + 1][end_col + 1] == 0:
                                 has_right_open = True
                         
+                        #check blocking threats
+                        if start_row - 1 >= 0 and start_col - 1 >= 0:
+                            if board[start_row - 1][start_col - 1] == 1 and player == 2:
+                                result[0] += 75
+                            elif board[start_row - 1][start_col - 1] == 2 and player == 1:
+                                result[1] += 75
+
+                        if end_row + 1 < self.rows and end_col + 1 < self.cols:
+                            if board[end_row + 1][end_col + 1] == 1 and player == 2:
+                                result[0] += 75
+                            elif board[end_row + 1][end_col + 1] == 2 and player == 1:
+                                result[1] += 75
+
+
                         # Score based on open ends
                         if has_left_open and has_right_open:
-                            result[prev_player - 1] += 15  # Both ends open
+                            result[prev_player - 1] += 50  # Both ends open
                         elif has_left_open or has_right_open:
-                            result[prev_player - 1] += 12  # One end open
-                        else:
-                            result[prev_player - 1] += 8   # No open ends
+                            result[prev_player - 1] += 25  # One end open
 
         
         # check diagonaly (top-right to bottom-left)
@@ -206,11 +216,24 @@ class AiPlayer:
                         if board[end_row + 1][end_col - 1] == 0:
                             has_right_open = True
                     
+                    # check blocking threats
+                    if start_row - 1 >= 0 and start_col + 1 < self.cols:
+                        if board[start_row - 1][start_col + 1] == 1 and player == 2:
+                            result[0] += 75
+                        elif board[start_row - 1][start_col + 1] == 2 and player == 1:
+                            result[1] += 75
+
+                    if end_row + 1 < self.rows and end_col - 1 >= 0:
+                        if board[end_row + 1][end_col - 1] == 1 and player == 2:
+                            result[0] += 75
+                        elif board[end_row + 1][end_col - 1] == 2 and player == 1:
+                            result[1] += 75
+
                     # Score based on open ends
                     if has_left_open and has_right_open:
-                        result[prev_player - 1] += 5  # Both ends open
+                        result[prev_player - 1] += 10  # Both ends open
                     elif has_left_open or has_right_open:
-                        result[prev_player - 1] += 3  # One end open
+                        result[prev_player - 1] += 5 # One end open
 
                     
                     elif count == 3 and prev_player != 0:
@@ -230,17 +253,15 @@ class AiPlayer:
                                 has_right_open = True
                         
                         if has_left_open and has_right_open:
-                            result[prev_player - 1] += 15 
+                            result[prev_player - 1] += 50
                         elif has_left_open or has_right_open:
-                            result[prev_player - 1] += 12 
-                        else:
-                            result[prev_player - 1] += 8  
+                            result[prev_player - 1] += 25 
+ 
 
         return result[0] - result[1]
 
     def _evaluate_2_and_3_in_row_horizontally(self, board):
 
-        
         result = [0,0]
 
         for row in range(self.rows):
@@ -279,9 +300,9 @@ class AiPlayer:
                             has_right_open = True
 
                     if has_left_open and has_right_open:
-                        result[prev_player - 1] += 5  # Both ends open
+                        result[prev_player - 1] += 10  # Both ends open
                     elif has_left_open or has_right_open:
-                        result[prev_player - 1] += 3  # One end open
+                        result[prev_player - 1] += 5  # One end open
 
                 # Check 3 in a row
                 elif count == 3 and prev_player != 0:
@@ -299,12 +320,24 @@ class AiPlayer:
                         if board[end_row][end_col + 1] == 0:
                             has_right_open = True
 
+                    # check for blocking threats
+                    if start_col - 1 >= 0:
+                        if board[start_row][start_col - 1] == 2 and player == 1:
+                            result[1] += 75
+                        elif board[start_row][start_col - 1] == 1 and player == 2:
+                            result[0] += 75
+
+                    if end_col + 1 < self.cols:
+                        if board[end_row][end_col + 1] == 1 and player == 2:
+                            result[0] += 75
+
+                        elif board[end_row][end_col + 1] == 2 and player == 1:
+                            result[1] += 75
+
                     if has_left_open and has_right_open:
-                        result[prev_player - 1] += 15  # Both ends open
+                        result[prev_player - 1] += 50  # Both ends open
                     elif has_left_open or has_right_open:
-                        result[prev_player - 1] += 12  # One end open
-                    else:
-                        result[prev_player - 1] += 8   # No open ends
+                        result[prev_player - 1] += 25  # One end open
 
         return result[0] - result[1] 
     
@@ -335,9 +368,13 @@ class AiPlayer:
                 # check 3 in a row
                 elif count == 3 and prev_player != 0:
                     if row > 2 and board[row-3][col] == 0:
-                        result[player-1] += 15  # One space above
-                    else:
-                        result[player-1] += 8  # No space above
+                        result[player-1] += 50  # One space above
+                    # check for blocking threats
+                    elif row > 2 and board[row-3][col] == 1:
+                        result[0] += 75
+                    elif row > 2 and board[row-3][col] == 2:
+                        result[1] += 75
+                    
 
         return result[0] - result[1]
 
@@ -362,5 +399,4 @@ class AiPlayer:
 
 # TODO
 # Distance from Bottom
-# Blocking Opponent's Threats:
 # Fork Opportunities:
