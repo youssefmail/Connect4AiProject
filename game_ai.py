@@ -120,12 +120,3 @@ class AiPlayer:
 
 
 
-# Notes:
-# - This evaluation uses sliding windows of length 4 across rows, columns, and diagonals.
-# - Center column control is weighted as +3 per piece.
-# - Terminal wins/losses are handled with infinite scores for clarity.
-# - Original specialized 2/3 in-row functions have been unified into _score_window.
-# TODO:
-# - Consider weighting lower rows higher (distance from bottom)
-# - Explore fork opportunities and more advanced heuristics
-# - use alpha beta algorithm
