@@ -17,23 +17,45 @@ class AiPlayer:
 
     def get_player_action(self, state):
         maximizing = (self.player == 1)
-        _, action = self._minimax(state, self.depth, maximizing)
+        _, action = self._minimax(self.depth, maximizing, state,alpha=float('-inf'), beta=float('inf'))
         return action
 
-    def _minimax(self, state, depth, maximizing):
-        if state.isTerminated() or depth == 0:
-            return self._evaluate(state), None
 
-        best_score = float('-inf') if maximizing else float('inf')
+    def _minimax(self, depth, is_maximizing, state, alpha, beta):
+        if state.isTerminated() or depth == 0:
+            score = self._evaluate(state)
+            return score, None
+
+        actions = state.get_available_actions()
+        if not actions:
+            score = self._evaluate(state)
+            return score, None
+
         best_action = None
-        for action in state.get_available_actions():
-            new_state = state.take_action_in_different_state_object(
-                action, self.player if maximizing else (3 - self.player)
-            )
-            score, _ = self._minimax(new_state, depth - 1, not maximizing)
-            if (maximizing and score > best_score) or (not maximizing and score < best_score):
-                best_score = score
-                best_action = action
+
+        if is_maximizing:
+            best_score = float('-inf')
+            for action in actions:
+                new_state = state.take_action_in_different_state_object(action, self.player)  # AI's move
+                score, _ = self._minimax(depth - 1, False, new_state, alpha, beta)
+                if score > best_score:
+                    best_score = score
+                    best_action = action
+                alpha = max(alpha, score)
+                if beta <= alpha:
+                    break  
+        else:
+            best_score = float('inf')
+            for action in actions:
+                new_state = state.take_action_in_different_state_object(action, 3 - self.player)  # Opponent's move
+                score, _ = self._minimax(depth - 1, True, new_state, alpha, beta)
+                if score < best_score:
+                    best_score = score
+                    best_action = action
+                beta = min(beta, score)
+                if beta <= alpha:
+                    break  
+
         return best_score, best_action
 
     def _evaluate(self, state):

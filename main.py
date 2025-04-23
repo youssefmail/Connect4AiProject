@@ -6,7 +6,7 @@ from game_ai import *
 # g.start_game()
 
 # To start game of random player vs human player
-g = Game([HumanPlayerByCommandLine("Ali"), AiPlayer(2,4,"Aiplayer")])
+g = Game([HumanPlayerByCommandLine("Ali"), AiPlayer(2,5,"Aiplayer")])
 g.start_game()
 
 # # To start game of random player
