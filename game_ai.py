@@ -115,7 +115,7 @@ class AiPlayer:
 
         if count_opp == 3 and count_empty == 1:
             score -= 4
-
+#
 
         return score
 
