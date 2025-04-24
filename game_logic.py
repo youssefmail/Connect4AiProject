@@ -2,372 +2,375 @@ from copy import deepcopy as copyOfObject
 from abc import ABC, abstractmethod
 from time import time
 import random
-
-# INIT_STATE_TABLE = [[0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0]]
-def GET_INIT_STATE():
-    return State([[0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0]])
-
-DEBUG_MODE = True
-def log(message):
-    if DEBUG_MODE:
-        if isinstance(message,(str,int,float)):
-            print("Log: "+str(message))
-        else:
-            print(message)
+import json
 
 
-def intersection(list1, list2):
-    "get intersection of items in two lists"
+# Notes for editing ai code
+# get_winner_number() is replaced by new is_terminate()
+# take_action() and take_action_in_different_state_object() has no player number argument
+# replaced is_game_of() with get_who_player_turn() and get_who_last_player_played_before_game_ended()
+# replaced get_winner_number() with get_winner_player_number()
+# replaced _get_winning_conditions() with get_winning_items_coordinates()
+# changed get_player_action() arguments
 
-    if len(list1) < len(list2):
-        return [item for item in list1 if item in list2]
-    else:
-        return [item for item in list2 if item in list1]
-
-    # another way failed with me
-    # Important note: return them without consider the order
-    # return list(set(list1) & set(list2))
-    # # Code in more clear way
-    # set1 = set(list1)
-    # set2 = set(list2)
-    # intersection_set = set1 & set2
-    # intersection_list = list(intersection_set)
-
-# class Action():
-#     def __init__(self,x,y,value):
-#         self.x = x
-#         self.y = y
-#         self.value = value
 
 class State():
+
+    # Static constants
+    ROWS_NUMBER=6
+    COLUMNS_NUMBER=7
+    WIN_NUMBER=4
+    SYMBOLS = (0,1,2)
+    
+    # Ok
     def __init__(
         self,
-        table,
-        action = None,
-        SYMBOLS = [0,1,2],
-        ROWS_NUMBER=6,
-        COLUMNS_NUMBER=7,
-        WIN_NUMBER=4,
+        actions_list = []
     ):
-        if not isinstance(table,list):
-            raise Exception("Not Table")
+
+        self._table = [[0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0]]
+        self._actions_list = []
+
+
+        # for get_termination_status() work
+        self._last_termination_status = -1
+        self._is_termination_status_checked = True
+        self._last_action_coordinates = None 
+
+
+        self._who_player_turn = 1 # first player
+        self._winning_items_coordinates = None # None means (game not terminate) or (no one won)
+        self._current_turn_number = 1
+
+        # why can input actions_list ??
+        # because of you want a state with particular board not init board
+
+        if not isinstance(actions_list,list):
+            raise Exception("Not valid actions list")
         
-        self._table = table
-    
-        self.ROWS_NUMBER = ROWS_NUMBER
-        self.COLUMNS_NUMBER = COLUMNS_NUMBER
-        self.WIN_NUMBER = WIN_NUMBER
-        self.SYMBOLS = SYMBOLS
-    
-        if not self.isCorrectTable():
-            raise Exception("Not Correct Table")
-        
-        self._isTerminatedBoolean = None
+        for i in range(len(actions_list)):
+            try:
+                self.take_action(actions_list[i])
+            except:
+                raise Exception(f"Not valid the action number '{i+1}' which is '{actions_list[i]}'")
 
-    def isCorrectTable(self):
-        "Checks if table is a correct connect 4 game"
+    # Ok
+    def display(self, withActionsRow=True, highlight_last_action=True):
+        "Prints the game board"
 
-        # Check data type
-        if not isinstance(self._table,list): return False
-        for row in self._table:
-            if not isinstance(row,list): return False
-        for row in self._table:
-            for item in row:
-                if not isinstance(item,(int,str)):
-                    return False
-            
-        # Check Dimensions and lengths
-        if len(self._table) != self.ROWS_NUMBER: return False
-        for row in self._table:
-            if len(row) != self.COLUMNS_NUMBER: return False
+        if highlight_last_action:
+            if self._current_turn_number == 1:
+                last_y, last_x = (-1, -1)
+            else:
+                last_y, last_x = self.get_last_action_coordinates()
 
-        # Check allowed symbols (0,1,2)
-        # count2 أو count1 == count2 + 1
-        # dic = {}
-        # for x in range(0,self.COLUMNS_NUMBER):
-        #     for y in range(0,self.ROWS_NUMBER):
-        #         dic[self._table[y][x]] += 1
-        # TODO
-
-        # Check logic (items in table are logical)
-        for x in range(0,self.COLUMNS_NUMBER):
-            found_frist_non_empty = False
-            for y in range(0,self.ROWS_NUMBER):
-                if self._table[y][x] != self.SYMBOLS[0]:
-                    found_frist_non_empty = True
-                else:
-                    if found_frist_non_empty:
-                        return False
-
-        
-
-
-        # check winning conditions
-        if not self._is_correct_winning_conditions():
-            return False
-
-
-        return True
-
-    def _is_correct_winning_conditions(self):
-        """Helper function for isCorrectTable()"""
-        # check winning conditions (Not both win, Not win multiple times for same player) if exist
-        
-        winning_conditions = self._get_winning_conditions()
-
-        if not winning_conditions:
-            return True
-        else:
-
-            # Must there is an item in "S" that if deleted will not find any winning conditions
-            # else: the state is not correct
-            S = intersection(winning_conditions, self._get_upper_items_coordinates())
-            del winning_conditions # not need it
-
-            if not S: # if empty list
-                return False
-
-            for item in S:
-                new_state = copyOfObject(self)
-                new_state._table[item[0]][item[1]] = self.SYMBOLS[0]
-                if not new_state._get_winning_conditions(): # if empty list
-                    return True
-
-            return False
-
-
-    def _get_winning_conditions(self):
-        """Helper function for _is_correct_winning_conditions()"""
-
-        winning_conditions = []
-
-        # Horizontally
-        for y in range(0, self.ROWS_NUMBER):
-            last_item_seen = self._table[y][0]
-            counter = 1
-            for x in range(1, self.COLUMNS_NUMBER):
-                if self._table[y][x] == last_item_seen:
-                    counter += 1
-                    if counter == self.WIN_NUMBER and last_item_seen != self.SYMBOLS[0]:
-                        for i in range(0, self.WIN_NUMBER):
-                            winning_conditions.append([ y , x - self.WIN_NUMBER + 1 + i ])
-                        # winning_conditions.append([
-                        #     y,
-                        #     x - self.WIN_NUMBER + 1,
-                        #     "to right"
-                        # ])
-                        counter = 0
-                else:
-                    last_item_seen = self._table[y][x]
-                    counter = 1
-
-        
-        # Vertically
-        for x in range(0, self.COLUMNS_NUMBER):
-            last_item_seen = self._table[0][x]
-            counter = 1
-            for y in range(1, self.ROWS_NUMBER):
-                if self._table[y][x] == last_item_seen:
-                    counter += 1
-                    if counter == self.WIN_NUMBER and last_item_seen != self.SYMBOLS[0]:
-                        for i in range(0, self.WIN_NUMBER):
-                            winning_conditions.append([ y - self.WIN_NUMBER + 1 + i , x ])
-                        # winning_conditions.append([
-                        #     y - self.WIN_NUMBER + 1,
-                        #     x,
-                        #     "to down"
-                        # ])
-                        counter = 0
-                else:
-                    last_item_seen = self._table[y][x]
-                    counter = 1
-
-
-        # Diagonally, Form up left to down right
-        for y in range(0, self.ROWS_NUMBER - self.WIN_NUMBER + 1):
-            for x in range(0, self.COLUMNS_NUMBER - self.WIN_NUMBER + 1):
-                main_item = self._table[y][x]
-                if main_item != self.SYMBOLS[0]:
-                    if all( [self._table[y+i][x+i] == main_item for i in range(0, self.WIN_NUMBER)]):
-                        for i in range(0, self.WIN_NUMBER):
-                            winning_conditions.append([ y+i , x+i ])
-                        
-                        # winning_conditions.append([
-                        #     y,
-                        #     x,
-                        #     "to right down"
-                        # ])
-
-
-        # Diagonally, Form up right to down left
-        for y in range(0, self.ROWS_NUMBER - self.WIN_NUMBER + 1):
-            for x in range(self.WIN_NUMBER - 1, self.COLUMNS_NUMBER):
-                main_item = self._table[y][x]
-                if main_item != self.SYMBOLS[0]:
-                    if all([self._table[y+i][x-i] == main_item for i in range(0, self.WIN_NUMBER)]):
-                        for i in range(0, self.WIN_NUMBER):
-                            winning_conditions.append([ y+i , x-i ])
-
-
-                        # winning_conditions.append([
-                        #     y,
-                        #     x,
-                        #     "to left down"
-                        # ])
-
-        
-        return winning_conditions
-
-
-    def _get_upper_items_coordinates(self):
-        "returns list of coordinates of items that is in the top of each column"
-
-        lst = []
-        for x in range(0,self.COLUMNS_NUMBER):
-            for y in range(0,self.ROWS_NUMBER):
-                if self._table[y][x] != self.SYMBOLS[0]:
-                    lst.append([y,x])
-                    break
-        
-        return lst
-
-    def _check_count_of_items(self):
-        count_of_items = self._get_count_of_items()
-
-        for key in count_of_items:
-            if not key in self.SYMBOLS:
-                return False
-
-        return items_count[self.SYMBOLS[1]] == items_count[self.SYMBOLS[2]] or items_count[self.SYMBOLS[1]] == items_count[self.SYMBOLS[2]] + 1
-    
-    def _get_count_of_items(self):
-        items_count = {symbol: 0 for symbol in self.SYMBOLS}
-
-        for row in self._table:
-            for item in row:
-                items_count[item] += 1
-
-        return items_count
-
-    def display(self, withActionsRow):
-        "Prints the game table"
         if withActionsRow:
             print("  (1  2  3  4  5  6  7)  ")
-        for row in self._table:
-            print("[  ",end="")
-            for item in row:
-                print(str(item)+"  ",end="")
-            print("] ")
+        for y in range(len(self._table)):
+            print("[ ",end="")
+            for x in range(len(self._table[y])):
+                if highlight_last_action and y == last_y and x == last_x:
+                    print("<"+str(self._table[y][x])+">",end="")
+                else:
+                    print(" "+str(self._table[y][x])+" ",end="")
+            print(" ]")
 
-    def printAsList(self):
+    # Ok
+    def print_board_as_list(self):
         print(self._table)
 
-    def getAsList(self):
+    # Ok
+    def get_board_as_list(self):
         return self._table
 
+    # Ok
+    def get_current_turn_number(self):
+        """
+        returns:
+            if game ended: the turns was played
+            if game not ended: the turn that should play it currently
+        """
+        return self._current_turn_number
 
-    def isTerminated(self):
-        "Checks if the state is end of game or not"
+    # Ok
+    def get_actions_list(self):
+        return self._actions_list
 
-        if self._isTerminatedBoolean is None or self._isTerminatedBoolean == False:
-            if all([item != self.SYMBOLS[0] for item in self._table[0]]):
-                self._isTerminatedBoolean = True
+    # Ok
+    def is_terminate(self):
+        return self.get_termination_status() != -1
 
-        if self._get_winning_conditions():
-            self._isTerminatedBoolean = True
+    # Ok
+    def get_termination_status(self):
+        """Checks if board is terminate
+        & return termination status
 
-        return self._isTerminatedBoolean
+        returns -1, 0, 1, 2
+        -1 = not terminate
+        0 = terminate and no one win
+        1 = terminate and player 1 won
+        2 = terminate and player 2 won
+        """
 
-    def get_winner_number(self):
-        "returns: 0, 1, 2 or error"
+        if not self._is_termination_status_checked:
+            # not need to check if self._last_action_coordinates is None because if None implies that self._is_termination_status_checked = False
 
-        if not self.isTerminated():
-            raise Exception("Not terminated to know the winner")
-        
-        lst = self._get_winning_conditions()
+            y, x = self._last_action_coordinates
+            symbol = self._table[y][x] # last player played number
 
-        if not lst:
-            return 0
-        
-        return self._table[lst[0][0]][lst[0][1]]
+            # check win to bottom
+            if y < 3 and self._table[y+1][x] == symbol and self._table[y+2][x] == symbol and self._table[y+3][x] == symbol:
+                self._last_termination_status = symbol
+                self._winning_items_coordinates = [(y, x), (y+1, x), (y+2, x), (y+3, x)]
+
+            # check win to right
+            elif x < 4 and self._table[y][x+1] == symbol and self._table[y][x+2] == symbol and self._table[y][x+3] == symbol:
+                self._last_termination_status = symbol
+                self._winning_items_coordinates = [(y, x), (y, x+1), (y, x+2), (y, x+3)]
+
+            # check win to left
+            elif x > 2 and self._table[y][x-1] == symbol and self._table[y][x-2] == symbol and self._table[y][x-3] == symbol:
+                self._last_termination_status = symbol
+                self._winning_items_coordinates = [(y, x), (y, x-1), (y, x-2), (y, x-3)]
+
+            # check win to top right
+            elif y > 2 and x < 4 and self._table[y-1][x+1] == symbol and self._table[y-2][x+2] == symbol and self._table[y-3][x+3] == symbol:
+                self._last_termination_status = symbol
+                self._winning_items_coordinates = [(y, x), (y-1, x+1), (y-2, x+2), (y-3, x+3)]
+
+            # check win to top left
+            elif y > 2 and x > 2 and self._table[y-1][x-1] == symbol and self._table[y-2][x-2] == symbol and self._table[y-3][x-3] == symbol:
+                self._last_termination_status = symbol
+                self._winning_items_coordinates = [(y, x), (y-1, x-1), (y-2, x-2), (y-3, x-3)]
+
+            # check win to bottom right
+            elif y < 3 and x < 4 and self._table[y+1][x+1] == symbol and self._table[y+2][x+2] == symbol and self._table[y+3][x+3] == symbol:
+                self._last_termination_status = symbol
+                self._winning_items_coordinates = [(y, x), (y+1, x+1), (y+2, x+2), (y+3, x+3)]
+
+            # check win to bottom left
+            elif y < 3 and x > 2 and self._table[y+1][x-1] == symbol and self._table[y+2][x-2] == symbol and self._table[y+3][x-3] == symbol:
+                self._last_termination_status = symbol
+                self._winning_items_coordinates = [(y, x), (y+1, x-1), (y+2, x-2), (y+3, x-3)]
+
+            # Check if board is full
+            elif all([item != 0 for item in self._table[0]]):
+                self._last_termination_status = 0
+            
+            self._is_termination_status_checked = True
+
+        return self._last_termination_status
     
-    def take_action(self, action, player_number):
+    # Ok
+    def take_action(self, action):
+        
+        # Check if gamed ended
+        if self.get_termination_status() != -1:
+            raise Exception("Game ended, No available action.")
+
+        # Check that it is an available action
         if not self.is_available_action(action):
             raise Exception("Not available action")
         
-        lst = []
-        for y in range(0, self.ROWS_NUMBER):
-            if self._table[y][action] != self.SYMBOLS[0]:
-                self._table[y-1][action] = self.SYMBOLS[player_number]
-                return
-        self._table[ self.ROWS_NUMBER - 1 ][action] = self.SYMBOLS[player_number]
+        # make action
+        player_number = self.get_who_player_turn()
+        found = False
+        for y in range(1, self.ROWS_NUMBER):
+            # the first row must be checked by self.is_available_action() so start range from 1 not 0
+            if self._table[y][action] != 0:
+                # Once find frist un empty place, put in before it (top of it)
+                self._table[y-1][action] = player_number
+                self._last_action_coordinates = (y-1, action)
+                found = True
+                break
+        # if checked all rows and all are empty, put in the lower row
+        if not found:
+            self._table[ self.ROWS_NUMBER - 1 ][action] = player_number
+            self._last_action_coordinates = (self.ROWS_NUMBER - 1, action)        
 
-    def take_action_in_different_state_object(self, action, player_number):
+        # Record action
+        self._actions_list.append(action)
+
+        # now, termination status isn't checked, need recheck
+        self._is_termination_status_checked = False
+
+        # recheck termination status
+        termination_status = self.get_termination_status()
+
+        if termination_status == -1:
+            # toggle player
+            self._toggle_player_turn()
+
+            # increase the turn number
+            self._current_turn_number += 1
+
+    # Ok
+    def take_action_in_different_state_object(self, action):
         new_state = copyOfObject(self)
-        new_state.take_action(action, self.SYMBOLS[player_number])
+        new_state.take_action(action)
         return new_state
 
+    # Ok
     def is_available_action(self, action):
-        return 0 <= action < self.COLUMNS_NUMBER and self._table[0][action] == self.SYMBOLS[0]
+        return 0 <= action < self.COLUMNS_NUMBER and self._table[0][action] == 0
     
+    # Ok
     def get_available_actions(self):
-        return [ action for action in range(0, self.COLUMNS_NUMBER) if self._table[0][action] == self.SYMBOLS[0] ]
+        return [ action for action in range(0, self.COLUMNS_NUMBER) if self._table[0][action] == 0 ]
+    
+    # Ok
+    def get_last_action_coordinates(self):
+        """
+        returns: 
+            if no player played yet: error
+            if a player played: tuple like (y, x) of size two
+                y is the row index, start from top to bottom 0, 1, 2, ...
+                x is the column index, start from left to right 0, 1, 2, ...
+        """
+
+        if self._last_action_coordinates is None:
+            raise Exception("No player played yet.")
+
+        return self._last_action_coordinates
+
+    # Ok
+    def get_winning_items_coordinates(self):
+        """returns coordinates of win items on board
+        return coordinates in format as in get_last_action_coordinates() explaination
         
-    def is_game_of(self):
-        "returns 0, 1 or 2 which is the player who is his turn"
+        returns:
+            error if Game is not ended
+            error if Game is ended and there is no winner
+            list of coordinates if Game is ended and there is a winner
+        """
         
-        count_of_items = self._get_count_of_items()
+        termination_status = self.get_termination_status()
+        
+        if termination_status == -1:
+            raise Exception("Game is not ended")
+        
+        if termination_status == 0:
+            raise Exception("No one won.")
 
-        if count_of_items[self.SYMBOLS[1]] == count_of_items[self.SYMBOLS[2]]:
-            return 1
-        elif count_of_items[self.SYMBOLS[1]] == count_of_items[self.SYMBOLS[2]] + 1:
-            return 2
-        else:
-            return 0
+        return self._winning_items_coordinates
 
+    # Ok
+    def get_who_player_turn(self):
+        """
+        Only works if game not ended
 
+        returns:
+            1 if player 1
+            2 if player 2
+            error if game ended
+        """
 
+        if self.get_termination_status() != -1:
+            raise Exception("Game Ended")
 
-# GET_INIT_STATE().isTerminated()
-# x = State([[0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,1,1,1,1,0]])
-# x = State([[0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,0,0,0,0,2],[0,0,0,0,0,0,2],[0,0,0,0,0,0,2],[0,0,1,1,1,1,2]])
-# x = State([[3,0,0,0,0,0,0],[3,0,0,0,0,0,0],[3,0,0,0,0,0,0],[3,0,0,0,0,0,0],[2,0,0,0,0,0,0],[1,0,1,1,1,1,0]])
-# x = State([[3,1,2,3,8,8,8],[3,4,5,6,8,8,8],[3,7,9,10,8,8,8],[3,11,12,13,8,8,8],[2,8,8,8,8,8,8],[1,8,1,1,1,1,8]])
-# # x.display()
-# # x = State([[0,0,2,0,8,0,2],[3,4,5,6,8,2,8],[3,7,9,10,2,8,8],[3,11,12,2,8,8,8],[2,8,8,8,8,8,8],[1,8,1,1,1,1,8]])
-# # x.display()
+        return self._who_player_turn
+
+    # Ok
+    def get_who_last_player_played_before_game_ended(self):
+        """
+        Only works if game ended
+
+        returns:
+            1 if player 1
+            2 if player 2
+            error if game is not ended
+        """
+
+        if self.get_termination_status() == -1:
+            raise Exception("Game is not ended")
+
+        return self._who_player_turn
+
+    # Ok
+    def get_winner_player_number(self):
+        """
+        Only works if game ended
+
+        returns:
+            0 if no one won
+            1 if player 1
+            2 if player 2
+            error if game is not ended
+        """
+
+        # Note about usage:
+        # generally you do not need this function if you use get_termination_status()
+        # but need it if you use is_terminate()
+
+        # Note about code: 
+        # winner player not always the last player played, may no one won
+
+        termination_status = self.get_termination_status()
+
+        if termination_status == -1:
+            raise Exception("Game is not ended")
+        
+        return termination_status
+    
+    # Ok
+    def _toggle_player_turn(self):
+        if self.get_termination_status() != -1:
+            raise Exception("Game Ended")
+
+        # toggle between 1 and 2
+        self._who_player_turn = 3 - self._who_player_turn
+        
+# -----------------------------------------------------------
 
 class Player(ABC):
     def __init__(self, name = "Player"):
         self.name = name
 
     @abstractmethod
-    def get_player_action(self, copy_of_current_state):
-        "This function is called by Game class and returns the action that the user choosed"
+    def get_player_action(self, copy_of_current_state, time_opponent_took = -1, last_turn_my_cache = None):
+        """This function is called by Game class and returns the action that the user choosed
+        
+            MUST RETURNS:
+                player_action, player_cache
+            
+            if there is no player cache
+            return:
+                player_action, None
+        """
+        
+        # when time_opponent_took = -1, no info provided about the time that opponent took
+
+        # last_turn_my_cache, you need it especially with ai players to help them not recalculate everything from zero again and again
+        
+        pass
+    
+    @abstractmethod
+    def get_default_name(self):
+        "Help know what is type of player"
+
+        return "Player"
+
+class AiPlayer(Player, ABC):
+    "Refers to Ai player or computer player"
+
+    def get_player_action(self, copy_of_current_state, time_opponent_took = -1, last_turn_my_cache = None):
         pass
 
     def get_default_name(self):
-        return "Player"
+        return "Ai Player"
 
-# class AiPlayer(Player):
-#     def get_player_action(self, copy_of_current_state):
-#         pass
+class RandomPlayer(AiPlayer):
+    def get_player_action(self, copy_of_current_state, time_opponent_took = -1, last_turn_my_cache = None):
+        return random.choice(copy_of_current_state.get_available_actions()), None
 
-#     def get_default_name(self):
-#         return "Ai Player"
-
-# class RandomPlayer(AiPlayer):
-#     def get_player_action(self, copy_of_current_state):
-#         return random.choice(copy_of_current_state.get_available_actions())
-
-#     def get_default_name(self):
-#         return "Ai Player"
+    def get_default_name(self):
+        return "Ai Player"
 
 
 
 class HumanPlayer(Player, ABC):
     @abstractmethod
-    def get_player_action(self, copy_of_current_state):
+    def get_player_action(self, copy_of_current_state, time_opponent_took = -1, last_turn_my_cache = None):
         pass
 
     def get_default_name(self):
@@ -375,34 +378,36 @@ class HumanPlayer(Player, ABC):
 
 
 class HumanPlayerByGUI(HumanPlayer):
-    def get_player_action(self, copy_of_current_state):
+    def get_player_action(self, copy_of_current_state, time_opponent_took = -1, last_turn_my_cache = None):
         pass
 
 class HumanPlayerByCommandLine(HumanPlayer):
-    def get_player_action(self, copy_of_current_state: State):
-        print("-"*50)
-        copy_of_current_state.display(True)
+    def get_player_action(self, copy_of_current_state: State, time_opponent_took = -1, last_turn_my_cache = None):
+        copy_of_current_state.display(True, True)
         available_actions = copy_of_current_state.get_available_actions()
         while True:
             try:
                 action = int(input(f"{self.name}, Choose action: "))-1
                 if action in available_actions:
-                    return action
+                    
+                    print("-"*50)
+                    return action, None
                 else:
                     print("Wrong action")
             except:
                 print("Wrong action")
 
+# -----------------------------------------------------------
+
 class Game():
-    def __init__(self, players, init_state = GET_INIT_STATE(), name = time()):
-        if not (isinstance(players, list) and len(players) == 2):
+    def __init__(self, players, init_state = State(), name = time()):
+        if not (isinstance(players, (list,tuple)) and len(players) == 2):
             raise Exception("Enter correct players")
         self._players = players
         self._current_state = init_state
         self._init_state = copyOfObject(self._current_state)
         self.actions_history = []
-        self._is_game_over_boolean = None
-        self.is_game_over()
+        self.times_history = []
         self.name = name
 
     def start_game(self):
@@ -411,21 +416,32 @@ class Game():
             self.game_over()
             return
 
-        player_turn = self._current_state.is_game_of()
-
-        if not player_turn in [1,2]:
-            raise Exception("Unexpected error")
-
-        player_turn -= 1
+        player_cache = [None, None]
+        last_time_of_player = -1
 
         while not self.is_game_over():
-            action = self._players[player_turn].get_player_action(copyOfObject(self._current_state))
-            if not action in self._current_state.get_available_actions():
-                raise Exception("Player sended to Game Object a wrong action")
-            self.actions_history.append(action)
-            self._current_state.take_action(action, player_turn+1)
 
-            player_turn = 1 - player_turn # toggle players
+            player_turn = self._current_state.get_who_player_turn() - 1
+
+            time_of_player = time()
+            
+            # get player action
+            action, player_cache[player_turn] = self._players[player_turn].get_player_action(
+                copyOfObject(self._current_state),
+                time_opponent_took=last_time_of_player,
+                last_turn_my_cache=player_cache[player_turn]
+            )
+            
+            
+            time_of_player = time() - time_of_player
+            last_time_of_player = time_of_player
+
+            if not self._current_state.is_available_action(action):
+                raise Exception("Player sended to Game Object a wrong action")
+            
+            self.actions_history.append(action)
+            self.times_history.append(time_of_player)
+            self._current_state.take_action(action)
 
         self.game_over()
 
@@ -434,27 +450,31 @@ class Game():
     def game_over(self):
         "Called when game ended"
 
-        winner = self._current_state.get_winner_number()
-        if winner in [1,2]:
+        winner = self._current_state.get_winner_player_number()
+        if winner in (1,2):
             print(f"Player {winner} is The Winner. ({self._players[winner-1].name})")
         elif winner == 0:
-            print(f"No one is the Winner")
+            print(f"No one won.")
         else:
             raise Exception("unexpected error")
 
-        # write result
-        with open(f"games.csv", "a") as file:
-            file.write("\n{")
-            file.write("\n\"players\": "+str([player.name for player in self._players])+",")
-            file.write("\n\"init_state\": "+str(self._init_state.getAsList())+",")
-            file.write("\n\"actions\": "+str(self.actions_history))
-            file.write("\n\"winner\": "+(str(winner) if winner in [0, 1, 2] else "error")+",")
-            file.write("\n},")
-            file.write("\n")
+        # record result
+        with open(f"games_history.json", "a") as file:
+            file.write(",\n") 
+            file.write(json.dumps(
+                {
+                    "players": [player.name for player in self._players],
+                    "init_state_actions_list": self._init_state.get_actions_list(),
+                    "actions": self.actions_history,
+                    "times": self.times_history,
+                    "winner": winner if winner in [0, 1, 2] else "error"
+                }, 
+                indent=4
+            )) 
+            
+
 
     def is_game_over(self):
-        if self._is_game_over_boolean is None or self._is_game_over_boolean == False:
-            self._is_game_over_boolean = self._current_state.isTerminated()
-        return self._is_game_over_boolean
+        return self._current_state.is_terminate()
 
 
