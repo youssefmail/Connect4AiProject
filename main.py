@@ -6,7 +6,7 @@ from game_logic import *
 # g.start_game()
 
 # To start game of random player vs human player
-g = Game([HumanPlayerByCommandLine("Ali"), RandomPlayer("random")])
+g = Game([HumanPlayerByCommandLine("Ali"), AiPlayer("random")])
 g.start_game()
 
 # # To start game of random player

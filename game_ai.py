@@ -2,7 +2,7 @@ from game_logic import *
 
 
 class AiPlayer:
-    def __init__(self, player=2, level=1, name="Ai Player"):
+    def __init__(self, player=2, level=2, name="Ai Player"):
         if player not in (1, 2):
             raise ValueError("Player must be either 1 or 2")
         self.name = name
@@ -36,7 +36,7 @@ class AiPlayer:
         if is_maximizing:
             best_score = float('-inf')
             for action in actions:
-                new_state = state.take_action_in_different_state_object(action, self.player)  # AI's move
+                new_state = state.take_action_in_different_state_object(action)  # AI's move
                 score, _ = self._minimax(depth - 1, False, new_state, alpha, beta)
                 if score > best_score:
                     best_score = score
@@ -47,7 +47,7 @@ class AiPlayer:
         else:
             best_score = float('inf')
             for action in actions:
-                new_state = state.take_action_in_different_state_object(action, 3 - self.player)  # Opponent's move
+                new_state = state.take_action_in_different_state_object(action)  # Opponent's move
                 score, _ = self._minimax(depth - 1, True, new_state, alpha, beta)
                 if score < best_score:
                     best_score = score
@@ -61,7 +61,7 @@ class AiPlayer:
     def _evaluate(self, state):
         # Terminal states
         if state.isTerminated():
-            winner = state.get_winner_number()
+            winner = state.get_winner_player_number()
             if winner == self.player:
                 return float('inf')
             elif winner == 0:
@@ -115,6 +115,7 @@ class AiPlayer:
 
         if count_opp == 3 and count_empty == 1:
             score -= 4
+
 
         return score
 
