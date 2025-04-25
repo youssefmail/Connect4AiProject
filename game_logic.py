@@ -327,21 +327,9 @@ class Player(ABC):
         self.name = name
 
     @abstractmethod
-    def get_player_action(self, copy_of_current_state, time_opponent_took = -1, last_turn_my_cache = None):
+    def get_player_action(self, copy_of_current_state):
         """This function is called by Game class and returns the action that the user choosed
-        
-            MUST RETURNS:
-                player_action, player_cache
-            
-            if there is no player cache
-            return:
-                player_action, None
-        """
-        
-        # when time_opponent_took = -1, no info provided about the time that opponent took
-
-        # last_turn_my_cache, you need it especially with ai players to help them not recalculate everything from zero again and again
-        
+            returns: player_action"""
         pass
     
     @abstractmethod
@@ -353,15 +341,17 @@ class Player(ABC):
 class AiPlayer(Player, ABC):
     "Refers to Ai player or computer player"
 
-    def get_player_action(self, copy_of_current_state, time_opponent_took = -1, last_turn_my_cache = None):
+    def get_player_action(self, copy_of_current_state):
         pass
 
     def get_default_name(self):
         return "Ai Player"
 
 class RandomPlayer(AiPlayer):
-    def get_player_action(self, copy_of_current_state, time_opponent_took = -1, last_turn_my_cache = None):
-        return random.choice(copy_of_current_state.get_available_actions()), None
+    "player play random action, takes 1 milisecond or less to take action"
+
+    def get_player_action(self, copy_of_current_state):
+        return random.choice(copy_of_current_state.get_available_actions())
 
     def get_default_name(self):
         return "Ai Player"
@@ -370,7 +360,7 @@ class RandomPlayer(AiPlayer):
 
 class HumanPlayer(Player, ABC):
     @abstractmethod
-    def get_player_action(self, copy_of_current_state, time_opponent_took = -1, last_turn_my_cache = None):
+    def get_player_action(self, copy_of_current_state):
         pass
 
     def get_default_name(self):
@@ -378,11 +368,11 @@ class HumanPlayer(Player, ABC):
 
 
 class HumanPlayerByGUI(HumanPlayer):
-    def get_player_action(self, copy_of_current_state, time_opponent_took = -1, last_turn_my_cache = None):
+    def get_player_action(self, copy_of_current_state):
         pass
 
 class HumanPlayerByCommandLine(HumanPlayer):
-    def get_player_action(self, copy_of_current_state: State, time_opponent_took = -1, last_turn_my_cache = None):
+    def get_player_action(self, copy_of_current_state: State):
         copy_of_current_state.display(True, True)
         available_actions = copy_of_current_state.get_available_actions()
         while True:
@@ -391,7 +381,7 @@ class HumanPlayerByCommandLine(HumanPlayer):
                 if action in available_actions:
                     
                     print("-"*50)
-                    return action, None
+                    return action
                 else:
                     print("Wrong action")
             except:
@@ -416,9 +406,6 @@ class Game():
             self.game_over()
             return
 
-        player_cache = [None, None]
-        last_time_of_player = -1
-
         while not self.is_game_over():
 
             player_turn = self._current_state.get_who_player_turn() - 1
@@ -426,15 +413,9 @@ class Game():
             time_of_player = time()
             
             # get player action
-            action, player_cache[player_turn] = self._players[player_turn].get_player_action(
-                copyOfObject(self._current_state),
-                time_opponent_took=last_time_of_player,
-                last_turn_my_cache=player_cache[player_turn]
-            )
-            
-            
+            action = self._players[player_turn].get_player_action(copyOfObject(self._current_state))
+
             time_of_player = time() - time_of_player
-            last_time_of_player = time_of_player
 
             if not self._current_state.is_available_action(action):
                 raise Exception("Player sended to Game Object a wrong action")
@@ -442,6 +423,8 @@ class Game():
             self.actions_history.append(action)
             self.times_history.append(time_of_player)
             self._current_state.take_action(action)
+
+            print(f"{self._players[player_turn].name} took {time_of_player:.2f}sec to play")
 
         self.game_over()
 
