@@ -22,7 +22,7 @@ class AiPlayer:
 
 
     def _minimax(self, depth, is_maximizing, state, alpha, beta):
-        if state.isTerminated() or depth == 0:
+        if state.is_terminate() or depth == 0:
             score = self._evaluate(state)
             return score, None
 
@@ -115,7 +115,7 @@ class AiPlayer:
 
         if count_opp == 3 and count_empty == 1:
             score -= 4
-#
+
 
         return score
 

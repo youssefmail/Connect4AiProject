@@ -338,25 +338,6 @@ class Player(ABC):
 
         return "Player"
 
-class AiPlayer(Player, ABC):
-    "Refers to Ai player or computer player"
-
-    def get_player_action(self, copy_of_current_state):
-        pass
-
-    def get_default_name(self):
-        return "Ai Player"
-
-class RandomPlayer(AiPlayer):
-    "player play random action, takes 1 milisecond or less to take action"
-
-    def get_player_action(self, copy_of_current_state):
-        return random.choice(copy_of_current_state.get_available_actions())
-
-    def get_default_name(self):
-        return "Ai Player"
-
-
 
 class HumanPlayer(Player, ABC):
     @abstractmethod
