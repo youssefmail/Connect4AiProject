@@ -1,6 +1,6 @@
 from game_logic import *
 
-class AiPlayer:
+class AiPlayer2:
     def __init__(self, player=2, level=2, name="Ai Player"):
         if player not in (1, 2):
             raise ValueError("Player must be either 1 or 2")
@@ -14,12 +14,13 @@ class AiPlayer:
     def get_default_name(self):
         return "Ai Player"
 
-    def get_player_action(self, state=State()):
+    def get_player_action(self, state = State()):
+        state.display()
         is_maximizing = (state.get_who_player_turn() == self.player)
         _, action = self._minimax(self.depth, is_maximizing,
                                   state, alpha=float('-inf'),
                                   beta=float('inf'))
-
+        print(str(self.player) + "player choose "+ str(action))
         return action
 
     def _minimax(self, depth, is_maximizing, state, alpha, beta):
@@ -32,6 +33,9 @@ class AiPlayer:
         if not actions:
             score = self._evaluate(state)
             return score, None
+        
+        # debug
+        is_root = (depth == self.depth)
 
         best_action = None
 
@@ -40,6 +44,9 @@ class AiPlayer:
             for action in actions:
                 new_state = state.take_action_in_different_state_object(action)
                 score, _ = self._minimax(depth - 1, False, new_state, alpha, beta)
+
+                if is_root:
+                    print(f"[ROOT] Action={action}, Evaluation={score}")
                 
                 if score > best_score:
                     best_score = score
@@ -52,6 +59,9 @@ class AiPlayer:
             for action in actions:
                 new_state = state.take_action_in_different_state_object(action)
                 score, _ = self._minimax(depth - 1, True, new_state, alpha, beta)
+
+                if is_root:
+                    print(f"[ROOT] Action={action}, Evaluation={score}")
 
                 if score < best_score:
                     best_score = score
@@ -106,9 +116,8 @@ class AiPlayer:
         count_opp = window.count(opp)
         count_empty = window.count(0)
 
-        if count_self == 4:
-            score += 1000
-        elif count_self == 3 and count_empty == 1:
+
+        if count_self == 3 and count_empty == 1:
             score += 5
         elif count_self == 2 and count_empty == 2:
             score += 2
