@@ -4,6 +4,10 @@ from time import time
 import random
 import json
 
+# For rich printing
+import colorama
+colorama.init(autoreset=True)
+
 
 # Notes for editing ai code
 # get_winner_number() is replaced by new is_terminate()
@@ -22,10 +26,10 @@ class State():
     WIN_NUMBER=4
     SYMBOLS = (0,1,2)
     
-    # Ok
+
     def __init__(
         self,
-        actions_list = []
+        actions_list = None
     ):
 
         self._table = [[0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0],[0,0,0,0,0,0,0]]
@@ -45,17 +49,19 @@ class State():
         # why can input actions_list ??
         # because of you want a state with particular board not init board
 
-        if not isinstance(actions_list,list):
-            raise Exception("Not valid actions list")
-        
-        for i in range(len(actions_list)):
-            try:
-                self.take_action(actions_list[i])
-            except:
-                raise Exception(f"Not valid the action number '{i+1}' which is '{actions_list[i]}'")
+        if not actions_list is None:
 
-    # Ok
-    def display(self, withActionsRow=True, highlight_last_action=True):
+            if not isinstance(actions_list,list):
+                raise Exception("Not valid actions list")
+            
+            for i in range(len(actions_list)):
+                try:
+                    self.take_action(actions_list[i])
+                except:
+                    raise Exception(f"Not valid the action number '{i+1}' which is '{actions_list[i]}'")
+
+
+    def display(self, withActionsRow=True, highlight_last_action=True, rich_display=True):
         "Prints the game board"
 
         if highlight_last_action:
@@ -64,26 +70,36 @@ class State():
             else:
                 last_y, last_x = self.get_last_action_coordinates()
 
+        if rich_display:
+            print_style = ["", colorama.Fore.GREEN, colorama.Fore.RED]
+
         if withActionsRow:
             print("  (1  2  3  4  5  6  7)  ")
         for y in range(len(self._table)):
             print("[ ",end="")
-            for x in range(len(self._table[y])):
-                if highlight_last_action and y == last_y and x == last_x:
-                    print("<"+str(self._table[y][x])+">",end="")
-                else:
-                    print(" "+str(self._table[y][x])+" ",end="")
+            if rich_display:
+                for x in range(len(self._table[y])):
+                    if highlight_last_action and y == last_y and x == last_x:
+                        print(print_style[self._table[y][x]]+"<●>",end="")
+                    else:
+                        print(print_style[self._table[y][x]]+" ● ",end="")
+            else:
+                for x in range(len(self._table[y])):
+                    if highlight_last_action and y == last_y and x == last_x:
+                        print("<"+str(self._table[y][x])+">",end="")
+                    else:
+                        print(" "+str(self._table[y][x])+" ",end="")
             print(" ]")
 
-    # Ok
+
     def print_board_as_list(self):
         print(self._table)
 
-    # Ok
+
     def get_board_as_list(self):
         return self._table
 
-    # Ok
+
     def get_current_turn_number(self):
         """
         returns:
@@ -92,15 +108,15 @@ class State():
         """
         return self._current_turn_number
 
-    # Ok
+
     def get_actions_list(self):
         return self._actions_list
 
-    # Ok
+
     def is_terminate(self):
         return self.get_termination_status() != -1
 
-    # Ok
+
     def get_termination_status(self):
         """Checks if board is terminate
         & return termination status
@@ -118,50 +134,69 @@ class State():
             y, x = self._last_action_coordinates
             symbol = self._table[y][x] # last player played number
 
-            # check win to bottom
+            # check win Vertically
             if y < 3 and self._table[y+1][x] == symbol and self._table[y+2][x] == symbol and self._table[y+3][x] == symbol:
                 self._last_termination_status = symbol
-                self._winning_items_coordinates = [(y, x), (y+1, x), (y+2, x), (y+3, x)]
 
-            # check win to right
-            elif x < 4 and self._table[y][x+1] == symbol and self._table[y][x+2] == symbol and self._table[y][x+3] == symbol:
-                self._last_termination_status = symbol
-                self._winning_items_coordinates = [(y, x), (y, x+1), (y, x+2), (y, x+3)]
+            # check win Horizontally
+            if self._last_termination_status == -1:
+                count = 1
+                for i in range( max(0, x-1) ,  max(0, x-3) -1 , -1 ):
+                    if self._table[y][i] == symbol:
+                        count += 1
+                    else:
+                        break
+                for i in range( max(0, x+1) , min(6, x+3) +1 ):
+                    if self._table[y][i] == symbol:
+                        count += 1
+                    else:
+                        break
+                if count > 3:
+                    self._last_termination_status = symbol
 
-            # check win to left
-            elif x > 2 and self._table[y][x-1] == symbol and self._table[y][x-2] == symbol and self._table[y][x-3] == symbol:
-                self._last_termination_status = symbol
-                self._winning_items_coordinates = [(y, x), (y, x-1), (y, x-2), (y, x-3)]
+            # check win Diagonally ( \ )
+            if self._last_termination_status == -1:
+                count = 1
+                for i in range( 1, 4 ):
+                    if y-i > -1 and x-i > -1 and self._table[y-i][x-i] == symbol:
+                        count += 1
+                    else:
+                        break
+                for i in range( 1, 4 ):
+                    if y+i < 6 and x+i < 7 and self._table[y+i][x+i] == symbol:
+                        count += 1
+                    else:
+                        break
+                if count > 3:
+                    self._last_termination_status = symbol
 
-            # check win to top right
-            elif y > 2 and x < 4 and self._table[y-1][x+1] == symbol and self._table[y-2][x+2] == symbol and self._table[y-3][x+3] == symbol:
-                self._last_termination_status = symbol
-                self._winning_items_coordinates = [(y, x), (y-1, x+1), (y-2, x+2), (y-3, x+3)]
+            # check win Diagonally ( / )
+            if self._last_termination_status == -1:
+                count = 1
+                for i in range( 1, 4 ):
+                    if y-i > -1 and x+i < 7 and self._table[y-i][x+i] == symbol:
+                        count += 1
+                    else:
+                        break
+                for i in range( 1, 4 ):
+                    if y+i < 6 and x-i > -1 and self._table[y+i][x-i] == symbol:
+                        count += 1
+                    else:
+                        break
+                if count > 3:
+                    self._last_termination_status = symbol
 
-            # check win to top left
-            elif y > 2 and x > 2 and self._table[y-1][x-1] == symbol and self._table[y-2][x-2] == symbol and self._table[y-3][x-3] == symbol:
-                self._last_termination_status = symbol
-                self._winning_items_coordinates = [(y, x), (y-1, x-1), (y-2, x-2), (y-3, x-3)]
-
-            # check win to bottom right
-            elif y < 3 and x < 4 and self._table[y+1][x+1] == symbol and self._table[y+2][x+2] == symbol and self._table[y+3][x+3] == symbol:
-                self._last_termination_status = symbol
-                self._winning_items_coordinates = [(y, x), (y+1, x+1), (y+2, x+2), (y+3, x+3)]
-
-            # check win to bottom left
-            elif y < 3 and x > 2 and self._table[y+1][x-1] == symbol and self._table[y+2][x-2] == symbol and self._table[y+3][x-3] == symbol:
-                self._last_termination_status = symbol
-                self._winning_items_coordinates = [(y, x), (y+1, x-1), (y+2, x-2), (y+3, x-3)]
 
             # Check if board is full
-            elif all([item != 0 for item in self._table[0]]):
-                self._last_termination_status = 0
+            if self._last_termination_status == -1:
+                if all([item != 0 for item in self._table[0]]):
+                    self._last_termination_status = 0
             
             self._is_termination_status_checked = True
 
         return self._last_termination_status
     
-    # Ok
+
     def take_action(self, action):
         
         # Check if gamed ended
@@ -204,21 +239,21 @@ class State():
             # increase the turn number
             self._current_turn_number += 1
 
-    # Ok
+
     def take_action_in_different_state_object(self, action):
         new_state = copyOfObject(self)
         new_state.take_action(action)
         return new_state
 
-    # Ok
+
     def is_available_action(self, action):
         return 0 <= action < self.COLUMNS_NUMBER and self._table[0][action] == 0
     
-    # Ok
+
     def get_available_actions(self):
         return [ action for action in range(0, self.COLUMNS_NUMBER) if self._table[0][action] == 0 ]
     
-    # Ok
+
     def get_last_action_coordinates(self):
         """
         returns: 
@@ -233,7 +268,7 @@ class State():
 
         return self._last_action_coordinates
 
-    # Ok
+
     def get_winning_items_coordinates(self):
         """returns coordinates of win items on board
         return coordinates in format as in get_last_action_coordinates() explaination
@@ -252,9 +287,12 @@ class State():
         if termination_status == 0:
             raise Exception("No one won.")
 
-        return self._winning_items_coordinates
+        return self._calc_winning_items_coordinates()
 
-    # Ok
+    def _calc_winning_items_coordinates(self):
+        "Helper function for get_winning_items_coordinates()"
+        pass
+
     def get_who_player_turn(self):
         """
         Only works if game not ended
@@ -270,7 +308,7 @@ class State():
 
         return self._who_player_turn
 
-    # Ok
+
     def get_who_last_player_played_before_game_ended(self):
         """
         Only works if game ended
@@ -286,7 +324,7 @@ class State():
 
         return self._who_player_turn
 
-    # Ok
+
     def get_winner_player_number(self):
         """
         Only works if game ended
@@ -312,7 +350,7 @@ class State():
         
         return termination_status
     
-    # Ok
+
     def _toggle_player_turn(self):
         if self.get_termination_status() != -1:
             raise Exception("Game Ended")
@@ -327,25 +365,33 @@ class Player(ABC):
         self.name = name
 
     @abstractmethod
-    def get_player_action(self, copy_of_current_state):
+    def get_player_action(self, copy_of_current_state: State):
         """This function is called by Game class and returns the action that the user choosed
             returns: player_action"""
         pass
     
-    @abstractmethod
-    def get_default_name(self):
-        "Help know what is type of player"
 
-        return "Player"
+class ComputerPlayer(Player, ABC):
+    "Refers to Ai player or computer player"
+
+    def get_player_action(self, copy_of_current_state):
+        pass
+
+class RandomPlayer(ComputerPlayer):
+    "player play random action, takes 1 milisecond or less to take action"
+
+    def __init__(self, name = "Player"):
+        super().__init__(name)
+        self.rng = random.Random() 
+
+    def get_player_action(self, copy_of_current_state):
+        return self.rng.choice(copy_of_current_state.get_available_actions())
 
 
 class HumanPlayer(Player, ABC):
     @abstractmethod
     def get_player_action(self, copy_of_current_state):
         pass
-
-    def get_default_name(self):
-        return "Human Player"
 
 
 class HumanPlayerByGUI(HumanPlayer):
@@ -371,15 +417,18 @@ class HumanPlayerByCommandLine(HumanPlayer):
 # -----------------------------------------------------------
 
 class Game():
-    def __init__(self, players, init_state = State(), name = time()):
-        if not (isinstance(players, (list,tuple)) and len(players) == 2):
+    def __init__(self, players, init_state = None, output_file = "games_history.json"):
+        if not (isinstance(players, (list,tuple)) and len(players) == 2 and all([isinstance(p, Player) for p in players])):
             raise Exception("Enter correct players")
         self._players = players
-        self._current_state = init_state
+        if init_state is None:
+            self._current_state = State()
+        else:
+            self._current_state = init_state
         self._init_state = copyOfObject(self._current_state)
         self.actions_history = []
         self.times_history = []
-        self.name = name
+        self.output_file = output_file
 
     def start_game(self):
         
@@ -387,9 +436,10 @@ class Game():
             self.game_over()
             return
 
+        player_turn = self._current_state.get_who_player_turn() - 1
+
         while not self.is_game_over():
 
-            player_turn = self._current_state.get_who_player_turn() - 1
 
             time_of_player = time()
             
@@ -406,6 +456,8 @@ class Game():
             self._current_state.take_action(action)
 
             print(f"{self._players[player_turn].name} took {time_of_player:.2f}sec to play")
+            
+            player_turn = 1 - player_turn
 
         self.game_over()
 
@@ -413,6 +465,10 @@ class Game():
 
     def game_over(self):
         "Called when game ended"
+
+        print("-"*50)
+        print("")
+        self._current_state.display()
 
         winner = self._current_state.get_winner_player_number()
         if winner in (1,2):
@@ -423,7 +479,7 @@ class Game():
             raise Exception("unexpected error")
 
         # record result
-        with open(f"games_history.json", "a") as file:
+        with open(self.output_file, "a") as file:
             file.write(",\n") 
             file.write(json.dumps(
                 {
