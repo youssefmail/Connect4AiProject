@@ -16,12 +16,10 @@ class AiPlayer(ComputerPlayer):
         return "Ai Player"
 
     def get_player_action(self, state = State()):
-        state.display()
         is_maximizing = (state.get_who_player_turn() == self.player)
         _, action = self._minimax(self.depth, is_maximizing,
                                   state, alpha=float('-inf'),
                                   beta=float('inf'))
-        print(str(self.player) + "player choose "+ str(action))
         return action
 
     def _minimax(self, depth, is_maximizing, state, alpha, beta):
@@ -35,8 +33,6 @@ class AiPlayer(ComputerPlayer):
             score = self._evaluate(state)
             return score, None
         
-        # debug
-        is_root = (depth == self.depth)
 
         best_action = None
 
@@ -46,8 +42,6 @@ class AiPlayer(ComputerPlayer):
                 new_state = state.take_action_in_different_state_object(action)
                 score, _ = self._minimax(depth - 1, False, new_state, alpha, beta)
 
-                if is_root:
-                    print(f"[ROOT] Action={action}, Evaluation={score}")
                 
                 if score > best_score:
                     best_score = score
@@ -60,9 +54,6 @@ class AiPlayer(ComputerPlayer):
             for action in actions:
                 new_state = state.take_action_in_different_state_object(action)
                 score, _ = self._minimax(depth - 1, True, new_state, alpha, beta)
-
-                if is_root:
-                    print(f"[ROOT] Action={action}, Evaluation={score}")
 
                 if score < best_score:
                     best_score = score
