@@ -8,17 +8,18 @@ class AiPlayer(ComputerPlayer):
         self.name = name
         self.player = player # My player number in Game
         self.level = level
-        self.depth = level + 1
+        self.depth = level + 2
         self.rows = 6
         self.cols = 7
 
     def get_player_action(self, state):
-        maximizing = (self.player == 1)
-        _, action = self._minimax(self.depth, maximizing, state,alpha=float('-inf'), beta=float('inf'))
+        
+        is_maximizing = (state.get_who_player_turn() == self.player)
+        _, action = self._minimax(self.depth, is_maximizing, state,alpha=float('-inf'), beta=float('inf'))
         return action
-
-
+    
     def _minimax(self, depth, is_maximizing, state, alpha, beta):
+
         if state.is_terminate() or depth == 0:
             score = self._evaluate(state)
             return score, None
@@ -33,27 +34,30 @@ class AiPlayer(ComputerPlayer):
         if is_maximizing:
             best_score = float('-inf')
             for action in actions:
-                new_state = state.take_action_in_different_state_object(action)  # AI's move
+                new_state = state.take_action_in_different_state_object(action)
                 score, _ = self._minimax(depth - 1, False, new_state, alpha, beta)
-                if score > best_score:
+                
+                if best_action is None or score >= best_score:
                     best_score = score
                     best_action = action
                 alpha = max(alpha, score)
                 if beta <= alpha:
-                    break  
+                    break
         else:
             best_score = float('inf')
             for action in actions:
-                new_state = state.take_action_in_different_state_object(action)  # Opponent's move
+                new_state = state.take_action_in_different_state_object(action)
                 score, _ = self._minimax(depth - 1, True, new_state, alpha, beta)
+
                 if score < best_score:
                     best_score = score
                     best_action = action
                 beta = min(beta, score)
                 if beta <= alpha:
-                    break  
+                    break
 
         return best_score, best_action
+    
 
     def _evaluate(self, state):
         # Terminal states
@@ -68,12 +72,10 @@ class AiPlayer(ComputerPlayer):
 
         board = state.get_board_as_list()
         score = 0
-        # Center column preference
         center_col = self.cols // 2
         center_count = sum(1 for r in range(self.rows) if board[r][center_col] == self.player)
         score += center_count * 3
 
-        # Score all windows of length 4
         for r in range(self.rows):
             for c in range(self.cols - 3):
                 window = [board[r][c + i] for i in range(4)]
@@ -86,17 +88,17 @@ class AiPlayer(ComputerPlayer):
 
         for r in range(self.rows - 3):
             for c in range(self.cols - 3):
-                # positive diagonal
                 window = [board[r + i][c + i] for i in range(4)]
                 score += self._score_window(window)
-                # negative diagonal
+
                 window = [board[r + 3 - i][c + i] for i in range(4)]
                 score += self._score_window(window)
+
+
 
         return score
 
     def _score_window(self, window):
-        
         score = 0
         opp = 3 - self.player
         count_self = window.count(self.player)
@@ -104,16 +106,13 @@ class AiPlayer(ComputerPlayer):
         count_empty = window.count(0)
 
         if count_self == 4:
-            score += 100
+            score += 1000
         elif count_self == 3 and count_empty == 1:
-            score += 5
+            score += 50
         elif count_self == 2 and count_empty == 2:
-            score += 2
+            score += 25
 
         if count_opp == 3 and count_empty == 1:
-            score -= 4
+            score -= 100
 
         return score
-
-
-
