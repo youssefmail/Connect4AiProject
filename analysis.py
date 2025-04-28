@@ -1,8 +1,10 @@
 import json
 
+history_file = "games_history.json"
+
 # Read games history
 try:
-    with open("games_history.json", "r") as file:
+    with open(history_file, "r") as file:
         games_history = json.loads(f"[{file.read()}]")
 except Exception as e:
     print(f"Error in json file: {e}")
