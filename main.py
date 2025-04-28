@@ -19,7 +19,11 @@ from game_ai import *
 # g.start_game()
 
 # To start game of human player vs ai player
-g = Game([HumanPlayerByCommandLine("Ali"), AiPlayer("Ai player")])
+g = Game([HumanPlayerByCommandLine("Human"), AiPlayer(2, "Ai player")])
 g.start_game()
+
+# # To start game of ai player vs ai player
+# g = Game([AiPlayer(1, "Ai player 1"), AiPlayer(2, "Ai player 2",level=4)])
+# g.start_game()
 
 # games recored at "games_history.json" to can retrive them

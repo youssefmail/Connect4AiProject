@@ -365,25 +365,17 @@ class Player(ABC):
         self.name = name
 
     @abstractmethod
-    def get_player_action(self, copy_of_current_state):
+    def get_player_action(self, copy_of_current_state: State):
         """This function is called by Game class and returns the action that the user choosed
             returns: player_action"""
         pass
     
-    @abstractmethod
-    def get_default_name(self):
-        "Help know what is type of player"
-
-        return "Player"
 
 class ComputerPlayer(Player, ABC):
     "Refers to Ai player or computer player"
 
     def get_player_action(self, copy_of_current_state):
         pass
-
-    def get_default_name(self):
-        return "Ai Player"
 
 class RandomPlayer(ComputerPlayer):
     "player play random action, takes 1 milisecond or less to take action"
@@ -396,18 +388,10 @@ class RandomPlayer(ComputerPlayer):
         return self.rng.choice(copy_of_current_state.get_available_actions())
 
 
-    def get_default_name(self):
-        return "Ai Player"
-
-
-
 class HumanPlayer(Player, ABC):
     @abstractmethod
     def get_player_action(self, copy_of_current_state):
         pass
-
-    def get_default_name(self):
-        return "Human Player"
 
 
 class HumanPlayerByGUI(HumanPlayer):

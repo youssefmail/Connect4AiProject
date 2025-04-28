@@ -1,19 +1,16 @@
-from game_logic import *
+from game_logic import State, ComputerPlayer
 
 
-class AiPlayer:
-    def __init__(self, player=2, level=2, name="Ai Player"):
+class AiPlayer(ComputerPlayer):
+    def __init__(self, player, name="Ai Player", level=2):
         if player not in (1, 2):
             raise ValueError("Player must be either 1 or 2")
         self.name = name
-        self.player = player
+        self.player = player # My player number in Game
         self.level = level
         self.depth = level + 1
         self.rows = 6
         self.cols = 7
-
-    def get_default_name(self):
-        return "Ai Player"
 
     def get_player_action(self, state):
         maximizing = (self.player == 1)
@@ -22,7 +19,7 @@ class AiPlayer:
 
 
     def _minimax(self, depth, is_maximizing, state, alpha, beta):
-        if state.isTerminated() or depth == 0:
+        if state.is_terminate() or depth == 0:
             score = self._evaluate(state)
             return score, None
 
@@ -60,7 +57,7 @@ class AiPlayer:
 
     def _evaluate(self, state):
         # Terminal states
-        if state.isTerminated():
+        if state.is_terminate():
             winner = state.get_winner_player_number()
             if winner == self.player:
                 return float('inf')
@@ -69,7 +66,7 @@ class AiPlayer:
             else:
                 return float('-inf')
 
-        board = state._table
+        board = state.get_board_as_list()
         score = 0
         # Center column preference
         center_col = self.cols // 2
@@ -115,7 +112,6 @@ class AiPlayer:
 
         if count_opp == 3 and count_empty == 1:
             score -= 4
-#
 
         return score
 
