@@ -470,9 +470,10 @@ class Game():
             self.actions_history.append(action)
             self.times_history.append(time_of_player)
             self._current_state.take_action(action)
-            player_turn = 1 - player_turn
 
             print(f"{self._players[player_turn].name} took {time_of_player:.2f}sec to play")
+            
+            player_turn = 1 - player_turn
 
         self.game_over()
 
