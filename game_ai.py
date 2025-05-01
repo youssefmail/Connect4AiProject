@@ -20,51 +20,87 @@ class AiPlayer(ComputerPlayer):
     def get_player_action(self, state):
         self.my_player_number = state.get_who_player_turn()
         # is_maximizing = (state.get_who_player_turn() == self.my_player_number)
-        treeObject = VisualTree(-1, {'name': 'Current State'})
-        _, action = self._minimax(treeObject, self.depth, True, state, alpha=float('-inf'), beta=float('inf'))
+        treeObject = VisualTree(-1, {'name': 'Root State'})
+        _, action, _, _ = self._minimax(treeObject, None, self.depth, True, state, alpha=float('-inf'), beta=float('inf'))
         treeObject.render_and_display()
         return action
 
-    def _minimax(self, treeObject, depth, is_maximizing, state, alpha, beta):
+    def _minimax(self, treeObject, parent_node_object, depth, is_maximizing, state, alpha, beta):
         # return best_score, best_action
      
-        if state.is_terminate() or depth == 0:
-            return self._evaluate(state), None
+        parent_node_id = None if parent_node_object is None else parent_node_object.get_id()
+
+        if depth == 0:
+            value = self._evaluate(state)
+
+            current_node_object = treeObject.add_node(parent_node_id, state.get_actions_list()[-1]+1, {"value": value, "remaning_depth":depth,"alpha":alpha, "beta": beta})
+
+            return value, None, alpha, beta 
+
+        if state.is_terminate():
+            value = self._evaluate(state)
+
+            current_node_object = treeObject.add_node(parent_node_id, state.get_actions_list()[-1]+1, {"value": value, "winner_number": state.get_winner_player_number(), "remaning_depth":depth,"alpha":alpha, "beta": beta})
+
+            return value, None, alpha, beta 
 
         actions = state.get_available_actions()
         if not actions:
-            return self._evaluate(state), None
+            value = self._evaluate(state)
+
+            current_node_object = treeObject.add_node(parent_node_id, state.get_actions_list()[-1]+1, {"value": value, "remaning_depth":depth, "available_actions":[a+1 for a in actions],"alpha":alpha, "beta": beta})
+
+            return value, None, alpha, beta 
         
 
         best_action = None
+        current_node_object = treeObject.add_node(parent_node_id, state.get_actions_list()[-1]+1, {"value": '?', "remaning_depth":depth, "available_actions":[a+1 for a in actions]})
 
         if is_maximizing:
             best_score = float('-inf')
             for action in actions:
                 new_state = state.take_action_in_different_state_object(action)
-                score, _ = self._minimax(treeObject, depth - 1, False, new_state, alpha, beta)
+                score, _, alpha, beta = self._minimax(treeObject, current_node_object, depth - 1, False, new_state, alpha, beta)
 
                 
                 if score > best_score or best_action is None:
                     best_score = score
                     best_action = action
+                
+                # alpha is the parent max value
+                # beta is the parent's min value
                 alpha = max(alpha, score)
-                if beta <= alpha:
+                if score <= alpha:
+                # if beta <= alpha:
+                # if alpha <= beta:
+
+                    print("beta <= alpha")
                     break
         else:
             best_score = float('inf')
             for action in actions:
                 new_state = state.take_action_in_different_state_object(action)
-                score, _ = self._minimax(treeObject, depth - 1, True, new_state, alpha, beta)
+                score, _, alpha, beta  = self._minimax(treeObject, current_node_object, depth - 1, True, new_state, alpha, beta)
 
                 if score < best_score or best_action is None:
                     best_score = score
                     best_action = action
                 beta = min(beta, score)
-                if beta <= alpha:
+                if score >= beta:
+                # if alpha <= beta:
+                # if beta <= alpha:
+
+
+                    print("alpha <= beta")
                     break
 
-        return best_score, best_action
+        current_node_object.info["value"] = best_score
+        current_node_object.info["player"] = "max" if is_maximizing else "min"
+        current_node_object.info["best_next_action"] = best_action+1
+        current_node_object.info["alpha"] = alpha
+        current_node_object.info["beta"] = beta
+
+        return best_score, best_action, alpha, beta 
 
     def _evaluate(self, state):
         if state.is_terminate():

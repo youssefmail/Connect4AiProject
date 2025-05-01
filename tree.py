@@ -20,6 +20,9 @@ class Node:
 
         self.children = []
 
+    def get_id(self):
+        return self._id
+
     def add_child(self, child_node):
         """يضيف عقدة كابن للعقدة الحالية"""
         if isinstance(child_node, Node):
@@ -65,6 +68,8 @@ class VisualTree:
 
     def find_node_by_id(self, target_id) -> Node | None:
         """تبحث وتُرجع العقدة التي لها المعرف الفريد المحدد."""
+        if target_id is None:
+            return self.root
         found_node, _ = self._find_node_recursive(target_id, self.root, None)
         return found_node
 
