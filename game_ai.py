@@ -137,6 +137,7 @@ class AiPlayer(ComputerPlayer):
                     best_action = action
                 # تحديث ألفا بعد تقييم هذا الفرع
                 alpha = max(alpha, best_score)
+                child_info['alpha'] = alpha
 
 
         else: # is_minimizing
