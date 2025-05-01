@@ -423,8 +423,10 @@ class Game():
         self._players = players
         if init_state is None:
             self._current_state = State()
-        else:
+        elif isinstance(init_state, State):
             self._current_state = init_state
+        else:
+            raise Exception("Game object's init_state must be of type \"state\"")
         self._init_state = copyOfObject(self._current_state)
         self.actions_history = []
         self.times_history = []

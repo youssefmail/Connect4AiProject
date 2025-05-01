@@ -37,7 +37,7 @@ class AiPlayer(ComputerPlayer):
                 new_state = state.take_action_in_different_state_object(action)
                 score, _ = self._minimax(depth - 1, False, new_state, alpha, beta)
                 
-                if best_action is None or score >= best_score:
+                if score > best_score or best_action is None:
                     best_score = score
                     best_action = action
                 alpha = max(alpha, score)
@@ -49,7 +49,7 @@ class AiPlayer(ComputerPlayer):
                 new_state = state.take_action_in_different_state_object(action)
                 score, _ = self._minimax(depth - 1, True, new_state, alpha, beta)
 
-                if score < best_score:
+                if score < best_score or best_action is None:
                     best_score = score
                     best_action = action
                 beta = min(beta, score)
