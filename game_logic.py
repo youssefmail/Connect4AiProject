@@ -7,6 +7,7 @@ import json
 # For rich printing
 import colorama
 colorama.init(autoreset=True)
+players_colors = (colorama.Fore.GREEN, colorama.Fore.RED)
 
 
 # Notes for editing ai code
@@ -71,7 +72,7 @@ class State():
                 last_y, last_x = self.get_last_action_coordinates()
 
         if rich_display:
-            print_style = ["", colorama.Fore.GREEN, colorama.Fore.RED]
+            print_style = ["", players_colors[0], players_colors[1]]
 
         if withActionsRow:
             print("  (1  2  3  4  5  6  7)  ")
@@ -402,11 +403,11 @@ class HumanPlayerByGUI(HumanPlayer):
 
 class HumanPlayerByCommandLine(HumanPlayer):
     def get_player_action(self, copy_of_current_state: State):
-        copy_of_current_state.display(True, True)
         available_actions = copy_of_current_state.get_available_actions()
+        current_player = copy_of_current_state.get_who_player_turn() - 1
         while True:
             try:
-                action = int(input(f"{self.name}, Choose action: "))-1
+                action = int(input(f"{players_colors[current_player]}{self.name}{colorama.Fore.RESET}, Choose action: "))-1
                 if action in available_actions:
                     
                     print("-"*50)
@@ -419,10 +420,13 @@ class HumanPlayerByCommandLine(HumanPlayer):
 # -----------------------------------------------------------
 
 class Game():
-    def __init__(self, players, init_state = None, output_file = "games_history.json"):
+    def __init__(self, players, init_state = None, print_boards = True, output_file = "games_history.json"):
         if not (isinstance(players, (list,tuple)) and len(players) == 2 and all([isinstance(p, Player) for p in players])):
             raise Exception("Enter correct players")
+        if not isinstance(print_boards, bool):
+            raise Exception("Enter correct print_boards")
         self._players = players
+        self.print_boards = print_boards
         if init_state is None:
             self._current_state = State()
         elif isinstance(init_state, State):
@@ -441,6 +445,9 @@ class Game():
             return
 
         player_turn = self._current_state.get_who_player_turn() - 1
+        self._current_state.display()
+        print("The board of start of the game")
+        print("-"*50)
 
         while not self.is_game_over():
 
@@ -459,7 +466,10 @@ class Game():
             self.times_history.append(time_of_player)
             self._current_state.take_action(action)
 
-            print(f"{self._players[player_turn].name} took {time_of_player:.2f}sec to play")
+            if self.print_boards:
+                self._current_state.display()
+            print(f"{players_colors[player_turn]}{self._players[player_turn].name}{colorama.Fore.RESET} took {time_of_player:.2f}sec to play")
+            print("-"*50)
             
             player_turn = 1 - player_turn
 
