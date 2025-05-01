@@ -141,16 +141,18 @@ class State():
             # check win Horizontally
             if self._last_termination_status == -1:
                 count = 1
-                for i in range( max(0, x-1) ,  max(0, x-3) -1 , -1 ):
-                    if self._table[y][i] == symbol:
-                        count += 1
-                    else:
-                        break
-                for i in range( max(0, x+1) , min(6, x+3) +1 ):
-                    if self._table[y][i] == symbol:
-                        count += 1
-                    else:
-                        break
+                if x != 0:
+                    for i in range( max(0, x-1) ,  max(0, x-3) -1 , -1 ):
+                        if self._table[y][i] == symbol:
+                            count += 1
+                        else:
+                            break
+                if x != 6:
+                    for i in range( min(6, x+1) , min(6, x+3) +1 ):
+                        if self._table[y][i] == symbol:
+                            count += 1
+                        else:
+                            break
                 if count > 3:
                     self._last_termination_status = symbol
 
