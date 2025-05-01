@@ -2,24 +2,24 @@ from game_logic import State, ComputerPlayer
 
 
 class AiPlayer(ComputerPlayer):
-    def __init__(self, player, name="Ai Player", level=2):
-        if player not in (1, 2):
-            raise ValueError("Player must be either 1 or 2")
+    def __init__(self, level=2, name="Ai Player"):
         self.name = name
-        self.player = player # My player number in Game
+        self.my_player_number = None # will be known after first get_player_action() call
         self.level = level
         self.depth = level + 2
         self.rows = 6
         self.cols = 7
 
     def get_player_action(self, state):
-        
-        is_maximizing = (state.get_who_player_turn() == self.player)
-        _, action = self._minimax(self.depth, is_maximizing, state,alpha=float('-inf'), beta=float('inf'))
+        self.my_player_number = state.get_who_player_turn()
+        # is_maximizing = (state.get_who_player_turn() == self.my_player_number)
+        _, action = self._minimax(self.depth, True,
+                                  state, alpha=float('-inf'),
+                                  beta=float('inf'))
         return action
-    
-    def _minimax(self, depth, is_maximizing, state, alpha, beta):
 
+    def _minimax(self, depth, is_maximizing, state, alpha, beta):
+     
         if state.is_terminate() or depth == 0:
             score = self._evaluate(state)
             return score, None
@@ -28,6 +28,7 @@ class AiPlayer(ComputerPlayer):
         if not actions:
             score = self._evaluate(state)
             return score, None
+        
 
         best_action = None
 
@@ -36,8 +37,9 @@ class AiPlayer(ComputerPlayer):
             for action in actions:
                 new_state = state.take_action_in_different_state_object(action)
                 score, _ = self._minimax(depth - 1, False, new_state, alpha, beta)
+
                 
-                if best_action is None or score >= best_score:
+                if score > best_score or best_action is None:
                     best_score = score
                     best_action = action
                 alpha = max(alpha, score)
@@ -49,7 +51,7 @@ class AiPlayer(ComputerPlayer):
                 new_state = state.take_action_in_different_state_object(action)
                 score, _ = self._minimax(depth - 1, True, new_state, alpha, beta)
 
-                if score < best_score:
+                if score < best_score or best_action is None:
                     best_score = score
                     best_action = action
                 beta = min(beta, score)
@@ -57,23 +59,21 @@ class AiPlayer(ComputerPlayer):
                     break
 
         return best_score, best_action
-    
 
     def _evaluate(self, state):
-        # Terminal states
         if state.is_terminate():
             winner = state.get_winner_player_number()
-            if winner == self.player:
+            if winner == self.my_player_number:
                 return float('inf')
             elif winner == 0:
                 return 0
             else:
                 return float('-inf')
 
-        board = state.get_board_as_list()
+        board = state.get_board_as_list() # same as state._table
         score = 0
         center_col = self.cols // 2
-        center_count = sum(1 for r in range(self.rows) if board[r][center_col] == self.player)
+        center_count = sum(1 for r in range(self.rows) if board[r][center_col] == self.my_player_number)
         score += center_count * 3
 
         for r in range(self.rows):
@@ -95,24 +95,22 @@ class AiPlayer(ComputerPlayer):
                 score += self._score_window(window)
 
 
-
         return score
 
     def _score_window(self, window):
         score = 0
-        opp = 3 - self.player
-        count_self = window.count(self.player)
+        opp = 3 - self.my_player_number
+        count_self = window.count(self.my_player_number)
         count_opp = window.count(opp)
         count_empty = window.count(0)
 
-        if count_self == 4:
-            score += 1000
-        elif count_self == 3 and count_empty == 1:
-            score += 50
+
+        if count_self == 3 and count_empty == 1:
+            score += 5
         elif count_self == 2 and count_empty == 2:
-            score += 25
+            score += 2
 
         if count_opp == 3 and count_empty == 1:
-            score -= 100
+            score -= 4
 
         return score
