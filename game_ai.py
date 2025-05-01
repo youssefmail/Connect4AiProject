@@ -1,4 +1,11 @@
 from game_logic import State, ComputerPlayer
+from tree import VisualTree, Node
+
+debug = True
+def log(msg):
+    if debug:
+        print(msg)
+
 
 
 class AiPlayer(ComputerPlayer):
@@ -13,21 +20,18 @@ class AiPlayer(ComputerPlayer):
     def get_player_action(self, state):
         self.my_player_number = state.get_who_player_turn()
         # is_maximizing = (state.get_who_player_turn() == self.my_player_number)
-        _, action = self._minimax(self.depth, True,
-                                  state, alpha=float('-inf'),
-                                  beta=float('inf'))
+        _, action = self._minimax(self.depth, True, state, alpha=float('-inf'), beta=float('inf'))
         return action
 
     def _minimax(self, depth, is_maximizing, state, alpha, beta):
+        # return best_score, best_action
      
         if state.is_terminate() or depth == 0:
-            score = self._evaluate(state)
-            return score, None
+            return self._evaluate(state), None
 
         actions = state.get_available_actions()
         if not actions:
-            score = self._evaluate(state)
-            return score, None
+            return self._evaluate(state), None
         
 
         best_action = None
