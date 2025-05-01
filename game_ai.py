@@ -20,10 +20,12 @@ class AiPlayer(ComputerPlayer):
     def get_player_action(self, state):
         self.my_player_number = state.get_who_player_turn()
         # is_maximizing = (state.get_who_player_turn() == self.my_player_number)
-        _, action = self._minimax(self.depth, True, state, alpha=float('-inf'), beta=float('inf'))
+        treeObject = VisualTree(-1, {'name': 'Current State'})
+        _, action = self._minimax(treeObject, self.depth, True, state, alpha=float('-inf'), beta=float('inf'))
+        treeObject.render_and_display()
         return action
 
-    def _minimax(self, depth, is_maximizing, state, alpha, beta):
+    def _minimax(self, treeObject, depth, is_maximizing, state, alpha, beta):
         # return best_score, best_action
      
         if state.is_terminate() or depth == 0:
@@ -40,7 +42,7 @@ class AiPlayer(ComputerPlayer):
             best_score = float('-inf')
             for action in actions:
                 new_state = state.take_action_in_different_state_object(action)
-                score, _ = self._minimax(depth - 1, False, new_state, alpha, beta)
+                score, _ = self._minimax(treeObject, depth - 1, False, new_state, alpha, beta)
 
                 
                 if score > best_score or best_action is None:
@@ -53,7 +55,7 @@ class AiPlayer(ComputerPlayer):
             best_score = float('inf')
             for action in actions:
                 new_state = state.take_action_in_different_state_object(action)
-                score, _ = self._minimax(depth - 1, True, new_state, alpha, beta)
+                score, _ = self._minimax(treeObject, depth - 1, True, new_state, alpha, beta)
 
                 if score < best_score or best_action is None:
                     best_score = score
