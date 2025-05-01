@@ -2,22 +2,18 @@ from game_logic import State, ComputerPlayer
 
 
 class AiPlayer(ComputerPlayer):
-    def __init__(self, player=2, level=2, name="Ai Player"):
-        if player not in (1, 2):
-            raise ValueError("Player must be either 1 or 2")
+    def __init__(self, level=2, name="Ai Player"):
         self.name = name
-        self.player = player
+        self.my_player_number = None # will be known after first get_player_action() call
         self.level = level
         self.depth = level + 2
         self.rows = 6
         self.cols = 7
 
-    def get_default_name(self):
-        return "Ai Player"
-
-    def get_player_action(self, state = State()):
-        is_maximizing = (state.get_who_player_turn() == self.player)
-        _, action = self._minimax(self.depth, is_maximizing,
+    def get_player_action(self, state):
+        self.my_player_number = state.get_who_player_turn()
+        # is_maximizing = (state.get_who_player_turn() == self.my_player_number)
+        _, action = self._minimax(self.depth, True,
                                   state, alpha=float('-inf'),
                                   beta=float('inf'))
         return action
@@ -67,17 +63,17 @@ class AiPlayer(ComputerPlayer):
     def _evaluate(self, state):
         if state.is_terminate():
             winner = state.get_winner_player_number()
-            if winner == self.player:
+            if winner == self.my_player_number:
                 return float('inf')
             elif winner == 0:
                 return 0
             else:
                 return float('-inf')
 
-        board = state._table
+        board = state.get_board_as_list() # same as state._table
         score = 0
         center_col = self.cols // 2
-        center_count = sum(1 for r in range(self.rows) if board[r][center_col] == self.player)
+        center_count = sum(1 for r in range(self.rows) if board[r][center_col] == self.my_player_number)
         score += center_count * 3
 
         for r in range(self.rows):
@@ -103,8 +99,8 @@ class AiPlayer(ComputerPlayer):
 
     def _score_window(self, window):
         score = 0
-        opp = 3 - self.player
-        count_self = window.count(self.player)
+        opp = 3 - self.my_player_number
+        count_self = window.count(self.my_player_number)
         count_opp = window.count(opp)
         count_empty = window.count(0)
 
