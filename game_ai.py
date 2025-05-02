@@ -12,53 +12,62 @@ class AiPlayer(ComputerPlayer):
 
     def get_player_action(self, state):
         self.my_player_number = state.get_who_player_turn()
-        # is_maximizing = (state.get_who_player_turn() == self.my_player_number)
-        _, action = self._minimax(self.depth, True,
-                                  state, alpha=float('-inf'),
-                                  beta=float('inf'))
+        _, action = self._minimax(self.depth, True, state, alpha=float('-inf'), beta=float('inf'))
         return action
 
-    def _minimax(self, depth, is_maximizing, state, alpha, beta):
+    def _minimax(self, depth, is_maximizing, state, alpha=float("-inf"), beta=float("inf")):
+        # return best_score, best_action
      
-        if state.is_terminate() or depth == 0:
-            score = self._evaluate(state)
-            return score, None
+        # alpha is best value for max player
+        # beta is best value for min player
+
+        if depth == 0:
+            value = self._evaluate(state)
+            return value, None 
+
+        if state.is_terminate():
+            value = self._evaluate(state)
+            return value, None 
 
         actions = state.get_available_actions()
         if not actions:
-            score = self._evaluate(state)
-            return score, None
+            value = self._evaluate(state)
+            return value, None 
         
 
         best_action = None
 
         if is_maximizing:
-            best_score = float('-inf')
+            best_value = float('-inf')
             for action in actions:
                 new_state = state.take_action_in_different_state_object(action)
-                score, _ = self._minimax(depth - 1, False, new_state, alpha, beta)
+                value, _ = self._minimax(depth - 1, False, new_state, alpha, beta)
 
+
+                if value > best_value or best_action is None:
+                    best_value = value
+                    best_action = action
+                if value >= beta:
+                    break # returns best_value
+                if value > alpha:
+                    alpha = value
                 
-                if score > best_score or best_action is None:
-                    best_score = score
-                    best_action = action
-                alpha = max(alpha, score)
-                if beta <= alpha:
-                    break
         else:
-            best_score = float('inf')
+            best_value = float('inf')
             for action in actions:
                 new_state = state.take_action_in_different_state_object(action)
-                score, _ = self._minimax(depth - 1, True, new_state, alpha, beta)
+                value, _  = self._minimax(depth - 1, True, new_state, alpha, beta)
 
-                if score < best_score or best_action is None:
-                    best_score = score
+
+                if value < best_value or best_action is None:
+                    best_value = value
                     best_action = action
-                beta = min(beta, score)
-                if beta <= alpha:
-                    break
+                if value <= alpha:
+                    break # returns best_value
+                if value < beta:
+                    beta = value
 
-        return best_score, best_action
+        return best_value, best_action 
 
     def _evaluate(self, state):
         if state.is_terminate():
@@ -72,9 +81,11 @@ class AiPlayer(ComputerPlayer):
 
         board = state.get_board_as_list() # same as state._table
         score = 0
-        center_col = self.cols // 2
-        center_count = sum(1 for r in range(self.rows) if board[r][center_col] == self.my_player_number)
-        score += center_count * 3
+        
+        center_preference = [0, 1, 2, 3, 2, 1, 0]  
+        for col in range(self.cols):
+            col_count = sum(1 for r in range(self.rows) if board[r][col] == self.my_player_number)
+            score += col_count * center_preference[col] * 3
 
         for r in range(self.rows):
             for c in range(self.cols - 3):
@@ -106,11 +117,13 @@ class AiPlayer(ComputerPlayer):
 
 
         if count_self == 3 and count_empty == 1:
-            score += 5
+            score += 10
         elif count_self == 2 and count_empty == 2:
-            score += 2
+            score += 4
 
         if count_opp == 3 and count_empty == 1:
+            score -= 20
+        elif count_opp == 2 and count_empty == 2:
             score -= 4
 
         return score
