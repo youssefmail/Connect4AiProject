@@ -46,6 +46,7 @@ class AiPlayer(ComputerPlayer):
 
         actions = state.get_available_actions()
         if not actions:
+            print("NO get_available_actions!!! and NO is_terminate!!!")
             value = self._evaluate(state)
 
             current_node_object = treeObject.add_node(parent_node_id, state.get_actions_list()[-1]+1, {"value": value, "remaning_depth":depth, "available_actions":[a+1 for a in actions],"alpha":alpha, "beta": beta})
@@ -78,8 +79,8 @@ class AiPlayer(ComputerPlayer):
                 #     best_score = score
                 #     best_action = action
                 
-                # alpha is the parent's max value
-                # beta is the parent's min value
+                # alpha is best value for max player
+                # beta is best value for min player
 
 
                 # if best_value >= beta:
