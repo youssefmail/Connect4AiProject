@@ -63,11 +63,16 @@ class AiPlayer(ComputerPlayer):
                 value, _ = self._minimax(treeObject, current_node_object, depth - 1, False, new_state, alpha, beta)
 
                 if value > best_value or best_action is None:
-                    best_value = max( best_value, value) 
+                    best_value = value
                     best_action = action
-                alpha = max(alpha, best_value)
-                if beta <= alpha:
-                    break
+                if value >= beta:
+                    break # returns best_value
+                if value > alpha:
+                    alpha = value
+                
+                # alpha = max(alpha, best_value)
+                # if beta <= alpha:
+                #     break
 
                 # if score > best_score or best_action is None:
                 #     best_score = score
@@ -92,12 +97,20 @@ class AiPlayer(ComputerPlayer):
                 value, _  = self._minimax(treeObject, current_node_object, depth - 1, True, new_state, alpha, beta)
 
 
+
                 if value < best_value or best_action is None:
-                    best_value = min( best_value, value) 
+                    best_value = value
                     best_action = action
-                beta = min(alpha, best_value)
-                if beta <= alpha:
-                    break
+                if value <= alpha:
+                    break # returns best_value
+                if value < beta:
+                    beta = value
+
+
+
+                # beta = min(alpha, best_value)
+                # if beta <= alpha:
+                #     break
 
 
 
