@@ -1,6 +1,6 @@
 from game_logic import State, ComputerPlayer
 
-
+ 
 class AiPlayer(ComputerPlayer):
     def __init__(self, level=2, name="Ai Player"):
         self.name = name
