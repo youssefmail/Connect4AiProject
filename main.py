@@ -1,35 +1,82 @@
-from game_logic import Game, State, RandomPlayer,  HumanPlayerByCommandLine
-from game_ai import AiPlayer
-
-# for i in range(10):
-#     g = Game([RandomPlayer("Random1"), RandomPlayer("Random2")])
-#     g.start_game()
+# main code to run the program
 
 
-# # Gui program
-# from game_gui import start_gui
-# if __name__ == "__main__":
-#     start_gui()
+def input_int(message, wrong_input_message, correct_values):
+    while True:
+        try:
+            i = int(input(message))
+        except:
+            print(wrong_input_message)
+        
+        if i not in correct_values:
+            print(wrong_input_message)
+        else:
+            return i
 
 
-# from game_logic import Game, State, RandomPlayer,  HumanPlayerByCommandLine, HumanPlayerByGUI
-# from game_ai import AiPlayer
+def command_line_program():
+    pass #rich mode disaply
 
-# # # To start game of human players
-# # g = Game([HumanPlayerByCommandLine("Alex"), HumanPlayerByCommandLine("Ali")])
-# # g.start_game()
-# # Gui program
+    from game_logic import Game, State, RandomPlayer,  HumanPlayerByCommandLine
+    from game_ai import AiPlayer
 
-# # # To start game of random players
-# # g = Game([RandomPlayer("Random1"), RandomPlayer("Random2")])
-# # g.start_game()
+    while True:
+        print()
+        print()
+        print()
+        print()
+        print("--------------------------------")
+        print("-------- Choose option ---------")
+        print("--------------------------------")
+        print()
+        print(" 1. Player VS Player ")
+        print(" 2. Player VS Ai ")
+        print(" 3. exit ")
+        print()
+        print("--------------------------------")
+        print()
+        i = input_int("Choose option: ", "Please enter a valid option", (1,2,3))
+        match i:
+            case 1:
+                g = Game([HumanPlayerByCommandLine("Player 1"), HumanPlayerByCommandLine("Player 2")])
+                g.start_game()
+            case 2:
+                level = input_int("\n\n----- Choose the Ai level (1-5) -----\n 4 is recommended\n 5 is slow\nChoose: ", "Please enter a valid number", (i for i in range(1,5+1)))
+                g = Game([HumanPlayerByCommandLine("You"), AiPlayer(name="Ai Player", level=level)])
+                g.start_game()
+            case 3:
+                exit()
+            case _: # default case
+                print("Please enter a valid option")
 
-# To start game of human player vs random player
-g = Game([HumanPlayerByCommandLine("Human"), AiPlayer(name="Ai player")])
-g.start_game()
 
-# # # To start game of ai player vs ai player
-# # g = Game([AiPlayer(), AiPlayer(level=4)])
-# # g.start_game()
+def menu():
+    while True:
+        print()
+        print("--------------------------------")
+        print("-------- Choose progarm --------")
+        print("--------------------------------")
+        print()
+        print(" 1. GUI program ")
+        print(" 2. Command line program ")
+        print(" 3. exit ")
+        print()
+        print("--------------------------------")
+        print()
+        i = input_int("Choose program: ", "Please enter a valid option", (1,2,3))
+        match i:
+            case 1:
+                # Gui program
+                from game_gui import start_gui
+                start_gui()
+                break
+            case 2:
+                command_line_program()
+                break
+            case 3:
+                exit()
+                break
+            case _: # default case
+                print("Please enter a valid option")
 
-# # games recored at "games_history.json" to can retrive them
+menu()
