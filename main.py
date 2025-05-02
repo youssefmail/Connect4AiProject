@@ -1,8 +1,10 @@
+from game_logic import Game, State, RandomPlayer,  HumanPlayerByCommandLine, HumanPlayerByGUI
+from game_ai import AiPlayer
 
-# Gui program
-from game_gui import start_gui
-if __name__ == "__main__":
-    start_gui()
+# # Gui program
+# from game_gui import start_gui
+# if __name__ == "__main__":
+#     start_gui()
 
 
 # from game_logic import Game, State, RandomPlayer,  HumanPlayerByCommandLine, HumanPlayerByGUI
@@ -21,9 +23,78 @@ if __name__ == "__main__":
 # # g = Game([HumanPlayerByCommandLine("Ali"), RandomPlayer("random")])
 # # g.start_game()
 
-# # To start game of human player vs ai player
-# g = Game([HumanPlayerByCommandLine("Human"), AiPlayer()])
+# # To start game of human player vs ai player (WHY AI NOT CHOOSE ACTION 7 !! WHY CHOOSED ACTION 1 !!)
+# g = Game([HumanPlayerByCommandLine("Human"), AiPlayer()],init_state=State(actions_list=[
+#         2,
+#         3,
+#         2,
+#         2,
+#         3,
+#         0,
+#         2,
+#         3,
+#         4,
+#         3,
+#         4,
+#         3,
+#         3,
+#         4,
+#         5,
+#         5,
+#         5,
+#         0,
+#         0,
+#         # 0,
+#         # 2,
+#         # 6
+#     ]))
 # g.start_game()
+
+# # To start game of human player vs ai player (WHY AI NOT CHOOSE ACTION 7 !! WHY CHOOSED ACTION 1 !!)
+# g = Game([HumanPlayerByCommandLine("Human"), AiPlayer()],init_state=State(actions_list=[
+#         3,
+#         6,
+#         3,
+#         6,
+#         3,
+#         # 6,
+#         # 3
+#     ]))
+# g.start_game()
+
+
+# # To start game of human player vs ai player (WHY AI NOT CHOOSE ACTION 7 !! WHY CHOOSED ACTION 1 !!)
+# g = Game([HumanPlayerByCommandLine("Human"), AiPlayer()],init_state=State(actions_list=[
+#         3,
+#         6,
+#         3,
+#         6,
+#         3,
+#         3,
+#         6,
+#         0,
+#         0,
+#         3,
+#         6,
+#         3,
+#         5,
+#         2,
+#         2,
+#         2,
+#         2,
+#         2,
+#         5,
+#         5,
+#         4,
+#         4,
+#         6,
+#         6,
+#         5,
+#         # 0,
+#         # 4
+#     ]))
+# g.start_game()
+
 
 # # # To start game of human player vs ai player (WHY AI NOT CHOOSE ACTION 7 !! WHY CHOOSED ACTION 1 !!)
 # # g = Game([HumanPlayerByCommandLine("Human"), AiPlayer()],init_state=State(actions_list=[
