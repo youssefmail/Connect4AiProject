@@ -20,7 +20,7 @@ class AiPlayer(ComputerPlayer):
     def get_player_action(self, state):
         self.my_player_number = state.get_who_player_turn()
         # is_maximizing = (state.get_who_player_turn() == self.my_player_number)
-        treeObject = VisualTree(-1, {'name': 'Root State'})
+        treeObject = VisualTree(-1, {'name': 'Root'})
         _, action = self._minimax(treeObject, None, self.depth, True, state, alpha=float('-inf'), beta=float('inf'))
         treeObject.render_and_display()
         return action
@@ -91,7 +91,7 @@ class AiPlayer(ComputerPlayer):
                     beta = value
 
         current_node_object.info["best_value"] = best_value
-        current_node_object.info["player"] = "max" if is_maximizing else "min"
+        current_node_object.info["next_player_to_play"] = "max" if is_maximizing else "min"
         current_node_object.info["best_next_action"] = action+1
         current_node_object.info["alpha"] = alpha
         current_node_object.info["beta"] = beta

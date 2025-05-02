@@ -13,36 +13,36 @@ from game_ai import AiPlayer
 # g = Game([HumanPlayerByCommandLine("Ali"), RandomPlayer("random")])
 # g.start_game()
 
-# # To start game of human player vs ai player
-# g = Game([HumanPlayerByCommandLine("Human"), AiPlayer()])
-# g.start_game()
-
-# To start game of human player vs ai player (WHY AI NOT CHOOSE ACTION 7 or 3 !! WHY CHOOSED ACTION 1 !!)
-g = Game([HumanPlayerByCommandLine("Human"), AiPlayer()],init_state=State(actions_list=[
-        2,
-        3,
-        2,
-        2,
-        3,
-        0,
-        2,
-        3,
-        4,
-        3,
-        4,
-        3,
-        3,
-        4,
-        5,
-        5,
-        5,
-        0,
-        0,
-        # 0,
-        # 2,
-        # 6
-    ]))
+# To start game of human player vs ai player
+g = Game([HumanPlayerByCommandLine("Human"), AiPlayer()])
 g.start_game()
+
+# # To start game of human player vs ai player (WHY AI NOT CHOOSE ACTION 7 or 3 !! WHY CHOOSED ACTION 1 !!)
+# g = Game([HumanPlayerByCommandLine("Human"), AiPlayer()],init_state=State(actions_list=[
+#         2,
+#         3,
+#         2,
+#         2,
+#         3,
+#         0,
+#         2,
+#         3,
+#         4,
+#         3,
+#         4,
+#         3,
+#         3,
+#         4,
+#         5,
+#         5,
+#         5,
+#         0,
+#         0,
+#         # 0,
+#         # 2,
+#         # 6
+#     ]))
+# g.start_game()
 
 # # To start game of human player vs ai player (WHY AI NOT CHOOSE ACTION 7 !! WHY CHOOSED ACTION 1 !!)
 # g = Game([HumanPlayerByCommandLine("Human"), AiPlayer()],init_state=State(actions_list=[
@@ -53,6 +53,39 @@ g.start_game()
 #         3,
 #         # 6,
 #         # 3
+#     ]))
+# g.start_game()
+
+
+# # To start game of human player vs ai player (WHY AI NOT CHOOSE ACTION 7 !! WHY CHOOSED ACTION 1 !!)
+# g = Game([HumanPlayerByCommandLine("Human"), AiPlayer()],init_state=State(actions_list=[
+#         3,
+#         6,
+#         3,
+#         6,
+#         3,
+#         3,
+#         6,
+#         0,
+#         0,
+#         3,
+#         6,
+#         3,
+#         5,
+#         2,
+#         2,
+#         2,
+#         2,
+#         2,
+#         5,
+#         5,
+#         4,
+#         4,
+#         6,
+#         6,
+#         5,
+#         # 0,
+#         # 4
 #     ]))
 # g.start_game()
 
