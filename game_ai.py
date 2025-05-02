@@ -81,9 +81,11 @@ class AiPlayer(ComputerPlayer):
 
         board = state.get_board_as_list() # same as state._table
         score = 0
-        center_col = self.cols // 2
-        center_count = sum(1 for r in range(self.rows) if board[r][center_col] == self.my_player_number)
-        score += center_count * 3
+        
+        center_preference = [0, 1, 2, 3, 2, 1, 0]  
+        for col in range(self.cols):
+            col_count = sum(1 for r in range(self.rows) if board[r][col] == self.my_player_number)
+            score += col_count * center_preference[col] * 3
 
         for r in range(self.rows):
             for c in range(self.cols - 3):
@@ -115,11 +117,13 @@ class AiPlayer(ComputerPlayer):
 
 
         if count_self == 3 and count_empty == 1:
-            score += 5
+            score += 10
         elif count_self == 2 and count_empty == 2:
-            score += 2
+            score += 4
 
         if count_opp == 3 and count_empty == 1:
+            score -= 20
+        elif count_opp == 2 and count_empty == 2:
             score -= 4
 
         return score
