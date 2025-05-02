@@ -21,11 +21,11 @@ class AiPlayer(ComputerPlayer):
         self.my_player_number = state.get_who_player_turn()
         # is_maximizing = (state.get_who_player_turn() == self.my_player_number)
         treeObject = VisualTree(-1, {'name': 'Root State'})
-        _, action, _, _ = self._minimax(treeObject, None, self.depth, True, state, alpha=float('-inf'), beta=float('inf'))
+        _, action = self._minimax(treeObject, None, self.depth, True, state, alpha=float('-inf'), beta=float('inf'))
         treeObject.render_and_display()
         return action
 
-    def _minimax(self, treeObject, parent_node_object, depth, is_maximizing, state, alpha, beta):
+    def _minimax(self, treeObject, parent_node_object, depth, is_maximizing, state, alpha=float("-inf"), beta=float("inf")):
         # return best_score, best_action
      
         parent_node_id = None if parent_node_object is None else parent_node_object.get_id()
@@ -35,14 +35,14 @@ class AiPlayer(ComputerPlayer):
 
             current_node_object = treeObject.add_node(parent_node_id, state.get_actions_list()[-1]+1, {"value": value, "remaning_depth":depth,"alpha":alpha, "beta": beta})
 
-            return value, None, alpha, beta 
+            return value, None 
 
         if state.is_terminate():
             value = self._evaluate(state)
 
             current_node_object = treeObject.add_node(parent_node_id, state.get_actions_list()[-1]+1, {"value": value, "winner_number": state.get_winner_player_number(), "remaning_depth":depth,"alpha":alpha, "beta": beta})
 
-            return value, None, alpha, beta 
+            return value, None 
 
         actions = state.get_available_actions()
         if not actions:
@@ -50,7 +50,7 @@ class AiPlayer(ComputerPlayer):
 
             current_node_object = treeObject.add_node(parent_node_id, state.get_actions_list()[-1]+1, {"value": value, "remaning_depth":depth, "available_actions":[a+1 for a in actions],"alpha":alpha, "beta": beta})
 
-            return value, None, alpha, beta 
+            return value, None 
         
 
         best_action = None
@@ -60,33 +60,39 @@ class AiPlayer(ComputerPlayer):
             best_score = float('-inf')
             for action in actions:
                 new_state = state.take_action_in_different_state_object(action)
-                score, _, alpha, beta = self._minimax(treeObject, current_node_object, depth - 1, False, new_state, alpha, beta)
+                score, _ = self._minimax(treeObject, current_node_object, depth - 1, False, new_state, alpha, beta)
 
                 
                 if score > best_score or best_action is None:
                     best_score = score
                     best_action = action
                 
-                # alpha is the parent max value
+                # alpha is the parent's max value
                 # beta is the parent's min value
-                alpha = max(alpha, score)
-                if score <= alpha:
+
+
+                if best_score >= beta:
+                # if score <= alpha:
                 # if beta <= alpha:
                 # if alpha <= beta:
-
                     print("beta <= alpha")
                     break
+
+                # alpha = max(alpha, score)
+                alpha = max(alpha, best_score)
+
         else:
             best_score = float('inf')
             for action in actions:
                 new_state = state.take_action_in_different_state_object(action)
-                score, _, alpha, beta  = self._minimax(treeObject, current_node_object, depth - 1, True, new_state, alpha, beta)
+                score, _  = self._minimax(treeObject, current_node_object, depth - 1, True, new_state, alpha, beta)
 
                 if score < best_score or best_action is None:
                     best_score = score
                     best_action = action
-                beta = min(beta, score)
-                if score >= beta:
+                
+                if best_score <= alpha:
+                # if score >= beta:
                 # if alpha <= beta:
                 # if beta <= alpha:
 
@@ -94,13 +100,17 @@ class AiPlayer(ComputerPlayer):
                     print("alpha <= beta")
                     break
 
+
+                #beta = min(beta, score)
+                beta = min(beta, best_score)
+
         current_node_object.info["value"] = best_score
         current_node_object.info["player"] = "max" if is_maximizing else "min"
         current_node_object.info["best_next_action"] = best_action+1
         current_node_object.info["alpha"] = alpha
         current_node_object.info["beta"] = beta
 
-        return best_score, best_action, alpha, beta 
+        return best_score, best_action 
 
     def _evaluate(self, state):
         if state.is_terminate():
