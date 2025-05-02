@@ -71,11 +71,10 @@ class AiPlayer(ComputerPlayer):
                 # beta is the parent's min value
 
 
-                if score > beta:
+                if score >= beta:
                 # if score <= alpha:
                 # if beta <= alpha:
                 # if alpha <= beta:
-                    print("beta <= alpha")
                     break
 
                 # alpha = max(alpha, score)
@@ -91,13 +90,12 @@ class AiPlayer(ComputerPlayer):
                 #     best_score = score
                 #     best_action = action
                 
-                if score < alpha:
+                if score <= alpha:
                 # if score >= beta:
                 # if alpha <= beta:
                 # if beta <= alpha:
 
 
-                    print("alpha <= beta")
                     break
 
 
