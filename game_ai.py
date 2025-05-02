@@ -28,6 +28,9 @@ class AiPlayer(ComputerPlayer):
     def _minimax(self, treeObject, parent_node_object, depth, is_maximizing, state, alpha=float("-inf"), beta=float("inf")):
         # return best_score, best_action
      
+        # alpha is best value for max player
+        # beta is best value for min player
+
         parent_node_id = None if parent_node_object is None else parent_node_object.get_id()
 
         if depth == 0:
@@ -63,6 +66,7 @@ class AiPlayer(ComputerPlayer):
                 new_state = state.take_action_in_different_state_object(action)
                 value, _ = self._minimax(treeObject, current_node_object, depth - 1, False, new_state, alpha, beta)
 
+
                 if value > best_value or best_action is None:
                     best_value = value
                     best_action = action
@@ -71,32 +75,11 @@ class AiPlayer(ComputerPlayer):
                 if value > alpha:
                     alpha = value
                 
-                # alpha = max(alpha, best_value)
-                # if beta <= alpha:
-                #     break
-
-                # if score > best_score or best_action is None:
-                #     best_score = score
-                #     best_action = action
-                
-                # alpha is best value for max player
-                # beta is best value for min player
-
-
-                # if best_value >= beta:
-                # # if score <= alpha:
-                # # if beta <= alpha:
-                # # if alpha <= beta:
-                #     break
-
-                # alpha = max(alpha, score)
-
         else:
             best_value = float('inf')
             for action in actions:
                 new_state = state.take_action_in_different_state_object(action)
                 value, _  = self._minimax(treeObject, current_node_object, depth - 1, True, new_state, alpha, beta)
-
 
 
                 if value < best_value or best_action is None:
@@ -106,30 +89,6 @@ class AiPlayer(ComputerPlayer):
                     break # returns best_value
                 if value < beta:
                     beta = value
-
-
-
-                # beta = min(alpha, best_value)
-                # if beta <= alpha:
-                #     break
-
-
-
-                # if score < best_score or best_action is None:
-                #     best_score = score
-                #     best_action = action
-                
-                # if best_value <= alpha:
-                # # if score >= beta:
-                # # if alpha <= beta:
-                # # if beta <= alpha:
-
-
-                #     break
-
-
-                #beta = min(beta, score)
-                # beta = min(beta, best_value)
 
         current_node_object.info["best_value"] = best_value
         current_node_object.info["player"] = "max" if is_maximizing else "min"
