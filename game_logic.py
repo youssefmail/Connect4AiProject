@@ -10,15 +10,6 @@ colorama.init(autoreset=True)
 players_colors = (colorama.Fore.GREEN, colorama.Fore.RED)
 
 
-# Notes for editing ai code
-# get_winner_number() is replaced by new is_terminate()
-# take_action() and take_action_in_different_state_object() has no player number argument
-# replaced is_game_of() with get_who_player_turn() and get_who_last_player_played_before_game_ended()
-# replaced get_winner_number() with get_winner_player_number()
-# replaced _get_winning_conditions() with get_winning_items_coordinates()
-# changed get_player_action() arguments
-
-
 class State():
 
     # Static constants
@@ -44,7 +35,6 @@ class State():
 
 
         self._who_player_turn = 1 # first player
-        self._winning_items_coordinates = None # None means (game not terminate) or (no one won)
         self._current_turn_number = 1
 
         # why can input actions_list ??
@@ -272,30 +262,6 @@ class State():
         return self._last_action_coordinates
 
 
-    def get_winning_items_coordinates(self):
-        """returns coordinates of win items on board
-        return coordinates in format as in get_last_action_coordinates() explaination
-        
-        returns:
-            error if Game is not ended
-            error if Game is ended and there is no winner
-            list of coordinates if Game is ended and there is a winner
-        """
-        
-        termination_status = self.get_termination_status()
-        
-        if termination_status == -1:
-            raise Exception("Game is not ended")
-        
-        if termination_status == 0:
-            raise Exception("No one won.")
-
-        return self._calc_winning_items_coordinates()
-
-    def _calc_winning_items_coordinates(self):
-        "Helper function for get_winning_items_coordinates()"
-        pass
-
     def get_who_player_turn(self):
         """
         Only works if game not ended
@@ -420,7 +386,7 @@ class HumanPlayerByCommandLine(HumanPlayer):
 # -----------------------------------------------------------
 
 class Game():
-    def __init__(self, players, init_state = None, print_boards = True, output_file = "games_history.json"):
+    def __init__(self, players, init_state = None, print_boards = True, rich_display=True, output_file = "games_history.json"):
         if not (isinstance(players, (list,tuple)) and len(players) == 2 and all([isinstance(p, Player) for p in players])):
             raise Exception("Enter correct players")
         if not isinstance(print_boards, bool):
@@ -445,7 +411,7 @@ class Game():
             return
 
         player_turn = self._current_state.get_who_player_turn() - 1
-        self._current_state.display()
+        self._current_state.display(rich_display=rich_display)
         print("The board of start of the game")
         print("-"*50)
 
@@ -467,7 +433,7 @@ class Game():
             self._current_state.take_action(action)
 
             if self.print_boards:
-                self._current_state.display()
+                self._current_state.display(rich_display=rich_display)
             print(f"{players_colors[player_turn]}{self._players[player_turn].name}{colorama.Fore.RESET} took {time_of_player:.2f}sec to play")
             print("-"*50)
             
@@ -482,7 +448,7 @@ class Game():
 
         print("-"*50)
         print("")
-        self._current_state.display()
+        self._current_state.display(rich_display=rich_display)
 
         winner = self._current_state.get_winner_player_number()
         if winner in (1,2):
