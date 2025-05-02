@@ -2,7 +2,7 @@ import pygame
 import asyncio
 import platform
 
-from game_logic import State, HumanPlayerByGUI, HumanPlayer, copyOfObject
+from game_logic import State, HumanPlayer, copyOfObject
 from game_ai import AiPlayer
 
 class HumanPlayerByGUI(HumanPlayer):
@@ -52,7 +52,7 @@ class ConnectFourGUI:
         self.pvai_button = pygame.Rect(250, 350, 200, 60)
         self.exit_button = pygame.Rect(250, 450, 200, 60)
         self.font = pygame.font.SysFont('arial', 40, bold=True)  # <-- Nicer font
-        self.small_font = pygame.font.SysFont('arial', 30)
+        self.small_font = pygame.font.SysFont('arial', 25)
 
         # Game variables
         self.menu_active = True

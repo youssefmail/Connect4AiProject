@@ -57,7 +57,7 @@ class State():
 
         if highlight_last_action:
             if self._current_turn_number == 1:
-                last_y, last_x = (-1, -1)
+                last_y, last_x = (-1, -1) # to make it highlight no thing
             else:
                 last_y, last_x = self.get_last_action_coordinates()
 
@@ -66,7 +66,7 @@ class State():
 
         if withActionsRow:
             print("  (1  2  3  4  5  6  7)  ")
-        for y in range(len(self._table)):
+        for y in range(len(self._table)): # for each row
             print("[ ",end="")
             if rich_display:
                 for x in range(len(self._table[y])):
@@ -120,7 +120,6 @@ class State():
         """
 
         if not self._is_termination_status_checked:
-            # not need to check if self._last_action_coordinates is None because if None implies that self._is_termination_status_checked = False
 
             y, x = self._last_action_coordinates
             symbol = self._table[y][x] # last player played number
@@ -240,6 +239,10 @@ class State():
 
 
     def is_available_action(self, action):
+
+        if not isinstance(action, int):
+            raise Exception("Action must be an int")
+
         return 0 <= action < self.COLUMNS_NUMBER and self._table[0][action] == 0
     
 
@@ -349,12 +352,11 @@ class ComputerPlayer(Player, ABC):
 class RandomPlayer(ComputerPlayer):
     "player play random action, takes 1 milisecond or less to take action"
 
-    def __init__(self, name = "Player"):
+    def __init__(self, name = "Random Player"):
         super().__init__(name)
-        self.rng = random.Random() 
 
     def get_player_action(self, copy_of_current_state):
-        return self.rng.choice(copy_of_current_state.get_available_actions())
+        return random.choice(copy_of_current_state.get_available_actions())
 
 
 class HumanPlayer(Player, ABC):
@@ -363,9 +365,9 @@ class HumanPlayer(Player, ABC):
         pass
 
 
-class HumanPlayerByGUI(HumanPlayer):
-    def get_player_action(self, copy_of_current_state):
-        pass
+# class HumanPlayerByGUI(HumanPlayer):
+#     def get_player_action(self, copy_of_current_state):
+#         pass
 
 class HumanPlayerByCommandLine(HumanPlayer):
     def get_player_action(self, copy_of_current_state: State):
@@ -402,6 +404,7 @@ class Game():
         self._init_state = copyOfObject(self._current_state)
         self.actions_history = []
         self.times_history = []
+        self.rich_display = rich_display
         self.output_file = output_file
 
     def start_game(self):
@@ -411,9 +414,10 @@ class Game():
             return
 
         player_turn = self._current_state.get_who_player_turn() - 1
-        self._current_state.display(rich_display=rich_display)
-        print("The board of start of the game")
-        print("-"*50)
+        if self.print_boards:
+            self._current_state.display(rich_display=self.rich_display)
+            print("The board of start of the game")
+            print("-"*50)
 
         while not self.is_game_over():
 
@@ -433,26 +437,35 @@ class Game():
             self._current_state.take_action(action)
 
             if self.print_boards:
-                self._current_state.display(rich_display=rich_display)
-            print(f"{players_colors[player_turn]}{self._players[player_turn].name}{colorama.Fore.RESET} took {time_of_player:.2f}sec to play")
-            print("-"*50)
+                self._current_state.display(rich_display=self.rich_display)
+                if self.rich_display:
+                    print(f"{players_colors[player_turn]}{self._players[player_turn].name}{colorama.Fore.RESET} took {time_of_player:.2f}sec to play")
+                else:
+                    print(f"{self._players[player_turn].name} took {time_of_player:.2f}sec to play")
+                print("-"*50)
             
             player_turn = 1 - player_turn
 
         self.game_over()
 
 
+    def is_game_over(self):
+        return self._current_state.is_terminate()
 
     def game_over(self):
         "Called when game ended"
 
-        print("-"*50)
-        print("")
-        self._current_state.display(rich_display=rich_display)
+        if self.print_boards:
+            #print("-"*50)
+            print("")
+            self._current_state.display(rich_display=self.rich_display)
 
         winner = self._current_state.get_winner_player_number()
         if winner in (1,2):
-            print(f"Player {winner} is The Winner. ({self._players[winner-1].name})")
+            if self.rich_display:
+                print(f"Player {winner} is The Winner. ({players_colors[winner-1]}{self._players[winner-1].name}{colorama.Fore.RESET})")
+            else:
+                print(f"Player {winner} is The Winner. ({self._players[winner-1].name})")
         elif winner == 0:
             print(f"No one won.")
         else:
@@ -472,9 +485,3 @@ class Game():
                 indent=4
             )) 
             
-
-
-    def is_game_over(self):
-        return self._current_state.is_terminate()
-
-

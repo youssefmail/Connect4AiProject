@@ -5,7 +5,10 @@ history_file = "games_history.json"
 # Read games history
 try:
     with open(history_file, "r") as file:
-        games_history = json.loads(f"[{file.read()}]")
+        data = file.read()
+        if data[0:2] == ",\n":
+            data = data[2:]
+        games_history = json.loads(f"[{data}]")
 except Exception as e:
     print(f"Error in json file: {e}")
 
