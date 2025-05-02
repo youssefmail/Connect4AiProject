@@ -1,6 +1,6 @@
 from game_logic import State, ComputerPlayer
 
- 
+
 class AiPlayer(ComputerPlayer):
     def __init__(self, level=2, name="Ai Player"):
         self.name = name
@@ -18,56 +18,55 @@ class AiPlayer(ComputerPlayer):
     def _minimax(self, depth, is_maximizing, state, alpha=float("-inf"), beta=float("inf")):
         # return best_score, best_action
      
-        # alpha is best value for max player
-        # beta is best value for min player
+        # alpha is best score for max player
+        # beta is best score for min player
 
         if depth == 0:
-            value = self._evaluate(state)
-            return value, None 
+            score = self._evaluate(state)
+            return score, None 
 
         if state.is_terminate():
-            value = self._evaluate(state)
-            return value, None 
+            score = self._evaluate(state)
+            return score, None 
 
         actions = state.get_available_actions()
         if not actions:
-            value = self._evaluate(state)
-            return value, None 
+            score = self._evaluate(state)
+            return score, None 
         
-
         best_action = None
 
         if is_maximizing:
-            best_value = float('-inf')
+            best_score = float('-inf')
             for action in actions:
                 new_state = state.take_action_in_different_state_object(action)
-                value, _ = self._minimax(depth - 1, False, new_state, alpha, beta)
+                score, _ = self._minimax(depth - 1, False, new_state, alpha, beta)
 
 
-                if value > best_value or best_action is None:
-                    best_value = value
+                if score > best_score or best_action is None:
+                    best_score = score
                     best_action = action
-                if value >= beta:
-                    break # returns best_value
-                if value > alpha:
-                    alpha = value
+                if score >= beta:
+                    break # returns best_score
+                if score > alpha:
+                    alpha = score
                 
         else:
-            best_value = float('inf')
+            best_score = float('inf')
             for action in actions:
                 new_state = state.take_action_in_different_state_object(action)
-                value, _  = self._minimax(depth - 1, True, new_state, alpha, beta)
+                score, _  = self._minimax(depth - 1, True, new_state, alpha, beta)
 
 
-                if value < best_value or best_action is None:
-                    best_value = value
+                if score < best_score or best_action is None:
+                    best_score = score
                     best_action = action
-                if value <= alpha:
-                    break # returns best_value
-                if value < beta:
-                    beta = value
+                if score <= alpha:
+                    break # returns best_score
+                if score < beta:
+                    beta = score
 
-        return best_value, best_action 
+        return best_score, best_action 
 
     def _evaluate(self, state):
         if state.is_terminate():
