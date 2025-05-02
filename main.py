@@ -1,10 +1,10 @@
 from game_logic import Game, State, RandomPlayer,  HumanPlayerByCommandLine, HumanPlayerByGUI
 from game_ai import AiPlayer
 
-# # Gui program
-# from game_gui import start_gui
-# if __name__ == "__main__":
-#     start_gui()
+# Gui program
+from game_gui import start_gui
+if __name__ == "__main__":
+    start_gui()
 
 
 # from game_logic import Game, State, RandomPlayer,  HumanPlayerByCommandLine, HumanPlayerByGUI
@@ -20,8 +20,8 @@ from game_ai import AiPlayer
 # # g.start_game()
 
 # To start game of human player vs random player
-g = Game([HumanPlayerByCommandLine("Human"), AiPlayer(name="Ai player")])
-g.start_game()
+# g = Game([HumanPlayerByCommandLine("Human"), AiPlayer(name="Ai player")])
+# g.start_game()
 
 # # # To start game of ai player vs ai player
 # # g = Game([AiPlayer(), AiPlayer(level=4)])
